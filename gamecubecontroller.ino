@@ -1,6 +1,7 @@
 // gamecube controller adapter
 
 #include "dwt.h"
+#include "gamecube.h"
 
 #undef SERIAL_DEBUG
 
@@ -8,12 +9,26 @@
 // brainlink 4 from right pin 0
 // brainlink red (leftmost) GND
 
+// 1K resistor between 3.3V and Gamecube data pin
+// facing socket, flat on top: 
+// 123
+// ===
+// 456
+// connect: 2--PA12
+// connect: 2--1K--3.3V
+// connect: 3--GND
+// connect: 4--GND
+// connect: 6--3.3V
+// optional: connect 1--5V (rumble, make sure there is enough current)
+
+// TODO: replace pinMode() with something fast
+
 gpio_dev* const ledPort = GPIOB;
 const uint8_t ledPin = 12;
 const uint8_t ledPinID = PB12;
 
-const uint32_t gcPinID = PA9;
-const uint8_t gcPin = 9;
+const uint32_t gcPinID = PA12;
+const uint8_t gcPin = 12;
 gpio_dev* const gcPort = GPIOA;
 const uint32_t cyclesPerUS = (SystemCoreClock/1000000ul);
 const uint32_t quarterBitSendingCycles = cyclesPerUS*5/4;
@@ -25,29 +40,6 @@ uint32_t gcPinBitmap;
 
 const uint8_t maxFails = 4;
 uint8_t fails;
-
-const uint16_t buttonA = 0x01;
-const uint16_t buttonB = 0x02;
-const uint16_t buttonX = 0x04;
-const uint16_t buttonY = 0x08;
-const uint16_t buttonStart = 0x10;
-const uint16_t buttonDLeft = 0x100;
-const uint16_t buttonDRight = 0x200;
-const uint16_t buttonDDown = 0x400;
-const uint16_t buttonDUp = 0x800;
-const uint16_t buttonZ = 0x1000;
-const uint16_t buttonShoulderRight = 0x2000;
-const uint16_t buttonShoulderLeft = 0x4000;
-
-typedef struct {
-  uint16_t buttons;
-  uint8_t joystickX;
-  uint8_t joystickY;
-  uint8_t cX;
-  uint8_t cY;
-  uint8_t shoulderLeft;
-  uint8_t shoulderRight;
-} GameCubeData_t;
 
 void setup() {
   gcPortPtr = portOutputRegister(digitalPinToPort(PA9));
@@ -65,7 +57,8 @@ void setup() {
 
 // at most 32 bits can be sent
 void gameCubeSendBits(uint32_t data, uint8_t bits) {
-  pinMode(gcPinID, OUTPUT);
+  //pinMode(gcPinID, OUTPUT);
+  gpio_set_mode(gcPort, gcPin, GPIO_OUTPUT_PP);
   data <<= 32-bits;
   DWT->CYCCNT = 0;
   uint32_t timerEnd = DWT->CYCCNT;
@@ -109,7 +102,8 @@ uint8_t gameCubeReceiveBits(void* data0, uint32_t bits) {
   
   uint8_t bitmap = 0x80;
 
-  pinMode(gcPinID, INPUT);
+//  pinMode(gcPinID, INPUT);
+  gpio_set_mode(gcPort, gcPin, GPIO_INPUT_FLOATING);
 
   *data = 0;
   do {
@@ -171,51 +165,7 @@ void loop() {
     Serial.println("c-stick = "+String(data.cX)+","+String(data.cY));  
     Serial.println("shoulders = "+String(data.shoulderLeft)+","+String(data.shoulderRight));      
 #else
-    Joystick.X(data.joystickX);
-    Joystick.Y(255-data.joystickY);
-    Joystick.Z(data.cX);
-    Joystick.Zrotate(data.cY);
-    Joystick.sliderLeft(data.shoulderLeft);
-    Joystick.sliderRight(data.shoulderRight);
-    Joystick.button(1, (data.buttons & buttonA) != 0);
-    Joystick.button(2, (data.buttons & buttonB) != 0);
-    Joystick.button(3, (data.buttons & buttonX) != 0);
-    Joystick.button(4, (data.buttons & buttonY) != 0);
-    Joystick.button(5, (data.buttons & buttonStart) != 0);
-    Joystick.button(6, (data.buttons & buttonZ) != 0);
-    Joystick.button(7, (data.buttons & buttonShoulderLeft) != 0);
-    Joystick.button(8, (data.buttons & buttonShoulderRight) != 0);
-
-    int16_t dir = -1;
-    if (data.buttons & (buttonDUp | buttonDRight | buttonDLeft | buttonDDown)) {
-      if (0==(data.buttons & (buttonDRight| buttonDLeft))) {
-        if (data.buttons & buttonDUp) 
-          dir = 0;
-        else 
-          dir = 180;
-      }
-      else if (0==(data.buttons & (buttonDUp | buttonDDown))) {
-        if (data.buttons & buttonDRight)
-          dir = 90;
-        else
-          dir = 270;
-      }
-      else if (data.buttons & buttonDUp) {
-        if (data.buttons & buttonDRight)
-          dir = 45;
-        else if (data.buttons & buttonDLeft)
-          dir = 315;
-      }
-      else if (data.buttons & buttonDDown) {
-        if (data.buttons & buttonDRight)
-          dir = 135;
-        else if (data.buttons & buttonDLeft)
-          dir = 225;
-      }
-    }
-    Joystick.hat(dir);
-    
-    Joystick.sendManualReport();
+    inject(injectors+0, &data);
 #endif
   }
   else {
