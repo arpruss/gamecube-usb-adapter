@@ -133,7 +133,9 @@ uint8_t gameCubeReceiveBits(void* data0, uint32_t bits) {
 
 uint8_t gameCubeReceiveReport(GameCubeData_t* data, uint8_t rumble) {
   if (fails >= maxFails) {
+    disableIRQ();
     gameCubeSendBits(0b000000001l, 9);
+    enableIRQ();
     delayMicroseconds(400);
     fails = 0;
   }              
