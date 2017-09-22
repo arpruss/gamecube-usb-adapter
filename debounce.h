@@ -37,7 +37,7 @@ class Debounce {
       lastToggleTime = millis();
     }
 
-    // Code using Debounce() should choose exactly one of three polling methods:
+    // Code using Debounce should choose exactly one of three polling methods:
     //   wasToggled(), getState() and wasPressed()
     // and should not switch between them, with the exception that a single initial call to
     // getState() is acceptable. 
