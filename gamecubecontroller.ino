@@ -1,6 +1,7 @@
 // gamecube controller adapter
 
 #include "dwt.h"
+#include "debounce.h"
 #include "gamecube.h"
 
 #undef SERIAL_DEBUG
@@ -23,6 +24,14 @@
 
 // TODO: replace pinMode() with something fast
 
+uint32_t injectionMode = 0;
+const uint32_t numInjectionModes = sizeof(injectors)/sizeof(*injectors);
+
+const uint32_t indicatorLEDs[] = { PA0, PA1, PA2, PA3 };
+const int numIndicators = sizeof(indicatorLEDs)/sizeof(*indicatorLEDs);
+const uint32_t downButton = PA4;
+const uint32_t upButton = PA5;
+
 gpio_dev* const ledPort = GPIOB;
 const uint8_t ledPin = 12;
 const uint8_t ledPinID = PB12;
@@ -40,6 +49,14 @@ uint32_t gcPinBitmap;
 
 const uint8_t maxFails = 4;
 uint8_t fails;
+Debounce debounceDown(downButton, HIGH);
+Debounce debounceUp(upButton, HIGH);
+
+void updateDisplay() {
+  uint8_t x = numInjectionModes >= 16 ? injectionMode : injectionMode+1;
+  for (int i=0; i<numIndicators; i++, x>>=1) 
+    digitalWrite(indicatorLEDs[i], x&1);
+}
 
 void setup() {
   gcPortPtr = portOutputRegister(digitalPinToPort(PA9));
@@ -47,12 +64,21 @@ void setup() {
   CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
   DWT->CTRL |= 1;
   fails = maxFails; // force update
+  for (int i=0; i<numIndicators; i++)
+    pinMode(indicatorLEDs[i], OUTPUT);
+  pinMode(downButton, INPUT_PULLDOWN);
+  pinMode(upButton, INPUT_PULLDOWN);
+  debounceDown.begin();
+  debounceUp.begin();
+  
 #ifdef SERIAL_DEBUG
   Serial.begin(115200);
 #else
   Joystick.setManualReportMode(true);
 #endif
   pinMode(ledPinID, OUTPUT);
+
+  updateDisplay();
 }
 
 // at most 32 bits can be sent
@@ -160,6 +186,20 @@ uint8_t gameCubeReceiveReport(GameCubeData_t* data) {
 
 void loop() {
   GameCubeData_t data;
+  
+  if (debounceUp.wasPressed()) {
+    if (injectionMode == 0)
+      injectionMode = numInjectionModes-1;
+    else
+      injectionMode--;
+    updateDisplay();
+  }
+  
+  if (debounceDown.wasPressed()) {
+    injectionMode = (injectionMode+1) % numInjectionModes;
+    updateDisplay();
+  }
+  
   if (gameCubeReceiveReport(&data, 0)) {
 #ifdef SERIAL_DEBUG
     Serial.println("buttons1 = "+String(data.buttons));  
@@ -167,7 +207,7 @@ void loop() {
     Serial.println("c-stick = "+String(data.cX)+","+String(data.cY));  
     Serial.println("shoulders = "+String(data.shoulderLeft)+","+String(data.shoulderRight));      
 #else
-    inject(injectors+0, &data);
+    inject(injectors + injectionMode, &data);
 #endif
   }
   else {
