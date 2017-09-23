@@ -35,6 +35,8 @@ const int numberOfButtons = numberOfHardButtons+2;
 #define JOY 'j'
 #define KEY 'k'
 #define FUN 'f'
+#define MOUSE_RELATIVE 'm'
+#define CLICK 'c'
 
 typedef void (*GameCubeDataProcessor_t)(const GameCubeData_t* data);
 
@@ -43,6 +45,11 @@ typedef struct {
   union {
     uint8_t key;
     uint8_t button;
+    uint8_t buttons;
+    struct {
+      int16_t x;
+      int16_t y;
+    } mouseRelative;
     GameCubeDataProcessor_t processor;
   } value;
 } InjectedButton_t;
@@ -52,6 +59,7 @@ typedef struct {
   GameCubeDataProcessor_t stick;
 } Injector_t;
 
+void joystickNoShoulder(const GameCubeData_t* data);
 void joystickDualShoulder(const GameCubeData_t* data);
 void joystickUnifiedShoulder(const GameCubeData_t* data);
 
@@ -72,6 +80,23 @@ const InjectedButton_t defaultJoystickButtons[numberOfButtons] = {
     { 0,   {.key = 0 } },           // left shoulder button partial
 };
 
+const InjectedButton_t jetsetJoystickButtons[numberOfButtons] = {
+    { JOY, {.button = 1} },           // A
+    { JOY, {.button = 2} },           // B
+    { JOY, {.button = 5} },           // X
+    { JOY, {.button = 3} },           // Y
+    { JOY, {.button = 8} },           // Start
+    { 0,   {.key = 0 } },             // DLeft
+    { 0,   {.key = 0 } },             // DRight
+    { 0,   {.key = 0 } },             // DDown
+    { 0,   {.key = 0 } },             // DUp
+    { JOY, {.button = 4 } },          // Z
+    { 0,   {.key = 0 } },           // right shoulder button
+    { 0,   {.key = 0 } },           // left shoulder button
+    { 0,   {.key = 6 } },           // right shoulder button partial
+    { 0,   {.key = 7 } },           // left shoulder button partial
+};
+
 const InjectedButton_t dpadWASDButtons[numberOfButtons] = {
     { KEY, {.key = ' '} },          // A
     { KEY, {.key = KEY_RETURN} },   // B
@@ -89,10 +114,83 @@ const InjectedButton_t dpadWASDButtons[numberOfButtons] = {
     { 0,   {.key = 0 } },           // left shoulder button partial
 };
 
+const InjectedButton_t dpadArrowWithCTRL[numberOfButtons] = {
+    { KEY, {.key = KEY_LEFT_CTRL} },          // A
+    { KEY, {.key = ' '} },          // B
+    { 0,   {.key = 0 } },           // X
+    { 0,   {.key = 0 } },           // Y
+    { KEY, {.key = '+' } },           // Start
+    { KEY, {.key = KEY_LEFT_ARROW } },         // DLeft
+    { KEY, {.key = KEY_RIGHT_ARROW } },         // DRight
+    { KEY, {.key = KEY_DOWN_ARROW  } },         // DDown
+    { KEY, {.key = KEY_UP_ARROW  } },         // DUp
+    { KEY, {.key = '-' } },           // Z
+    { 0,   {.key = 0 } },           // right shoulder button
+    { 0,   {.key = 0 } },           // left shoulder button
+    { 0,   {.key = 0 } },           // right shoulder button partial
+    { 0,   {.key = 0 } },           // left shoulder button partial
+};
+
+const InjectedButton_t dpadArrowWithSpace[numberOfButtons] = {
+    { KEY, {.key = ' '} },          // A
+    { KEY, {.key = KEY_BACKSPACE} }, // B
+    { 0,   {.key = 0 } },           // X
+    { 0,   {.key = 0 } },           // Y
+    { KEY, {.key = '+' } },           // Start
+    { KEY, {.key = KEY_LEFT_ARROW } },         // DLeft
+    { KEY, {.key = KEY_RIGHT_ARROW } },         // DRight
+    { KEY, {.key = KEY_DOWN_ARROW  } },         // DDown
+    { KEY, {.key = KEY_UP_ARROW  } },         // DUp
+    { KEY, {.key = '-' } },           // Z
+    { 0,   {.key = 0 } },           // right shoulder button
+    { 0,   {.key = 0 } },           // left shoulder button
+    { 0,   {.key = 0 } },           // right shoulder button partial
+    { 0,   {.key = 0 } },           // left shoulder button partial
+};
+
+const InjectedButton_t dpadQBert[numberOfButtons] = {
+    { KEY, {.key = '1'} },          // A
+    { KEY, {.key = '2'} }, // B
+    { 0,   {.key = 0 } },           // X
+    { 0,   {.key = 0 } },           // Y
+    { KEY, {.key = '+' } },           // Start
+    { KEY, {.key = KEY_LEFT_ARROW } },         // DLeft
+    { KEY, {.key = KEY_RIGHT_ARROW } },         // DRight
+    { KEY, {.key = KEY_DOWN_ARROW  } },         // DDown
+    { KEY, {.key = KEY_UP_ARROW  } },         // DUp
+    { KEY, {.key = '-' } },           // Z
+    { 0,   {.key = 0 } },           // right shoulder button
+    { 0,   {.key = 0 } },           // left shoulder button
+    { 0,   {.key = 0 } },           // right shoulder button partial
+    { 0,   {.key = 0 } },           // left shoulder button partial
+};
+
+const InjectedButton_t dpadMC[numberOfButtons] = {
+    { KEY, {.key = ' '} },          // A
+    { KEY, {.key = KEY_LEFT_SHIFT} }, // B
+    { 0,   {.key = 0 } },           // X
+    { 0,   {.key = 0 } },           // Y
+    { CLICK, {.buttons = 0x02 } },           // Start // TODO: check button number
+    { MOUSE_RELATIVE, {.mouseRelative = {-50,0} } },         // DLeft
+    { MOUSE_RELATIVE, {.mouseRelative = {50,0} } },         // DRight
+    { KEY, {.key = 's' } },         // DDown
+    { KEY, {.key = 'w' } },         // DUp
+    { CLICK, {.buttons = 0x01 } },           // Z
+    { 0,   {.key = 0 } },           // right shoulder button
+    { 0,   {.key = 0 } },           // left shoulder button
+    { 0,   {.key = 0 } },           // right shoulder button partial
+    { 0,   {.key = 0 } },           // left shoulder button partial
+};
+
 const Injector_t injectors[] = {
   { defaultJoystickButtons, joystickDualShoulder },
   { defaultJoystickButtons, joystickUnifiedShoulder },
-  { dpadWASDButtons, NULL }
+  { jetsetJoystickButtons, joystickNoShoulder },
+  { dpadWASDButtons, NULL },
+  { dpadArrowWithCTRL, NULL },
+  { dpadArrowWithSpace, NULL },  
+  { dpadQBert, NULL },  
+  { dpadMC, NULL },  
 };
 
 #endif // _GAMECUBE_H

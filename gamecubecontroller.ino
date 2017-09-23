@@ -12,14 +12,15 @@
 
 // 1K resistor between 3.3V and Gamecube data pin
 // facing socket, flat on top: 
-// 123
-// ===
-// 456
-// connect: 2--PA12
+//    123
+//    ===
+//    456
+// connect: 2--PA6
 // connect: 2--1K--3.3V
 // connect: 3--GND
 // connect: 4--GND
 // connect: 6--3.3V
+// LEDs: PA0, PA1, PA2, PA3
 // optional: connect 1--5V (rumble, make sure there is enough current)
 
 // TODO: replace pinMode() with something fast
@@ -36,8 +37,8 @@ gpio_dev* const ledPort = GPIOB;
 const uint8_t ledPin = 12;
 const uint8_t ledPinID = PB12;
 
-const uint32_t gcPinID = PA12;
-const uint8_t gcPin = 12;
+const uint32_t gcPinID = PA6;
+const uint8_t gcPin = 6;
 gpio_dev* const gcPort = GPIOA;
 const uint32_t cyclesPerUS = (SystemCoreClock/1000000ul);
 const uint32_t quarterBitSendingCycles = cyclesPerUS*5/4;

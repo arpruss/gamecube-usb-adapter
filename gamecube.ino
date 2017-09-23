@@ -65,6 +65,11 @@ void joystickUnifiedShoulder(const GameCubeData_t* data) {
     Joystick.sliderLeft(255+data->shoulderRight-data->shoulderLeft);
 }
 
+void joystickNoShoulder(const GameCubeData_t* data) {
+    joystickBasic(data);
+    joystickPOV(data);
+}
+
 void inject(const Injector_t* injector, const GameCubeData_t* curDataP) {
   didJoystick = false;
   
@@ -82,6 +87,12 @@ void inject(const Injector_t* injector, const GameCubeData_t* curDataP) {
     else if (injector->buttons[i].mode == JOY) {
       Joystick.button(injector->buttons[i].value.button, curButtons[i]);
       didJoystick = true;
+    }
+    else if (injector->buttons[i].mode == MOUSE_RELATIVE) {
+      Mouse.move(injector->buttons[i].value.mouseRelative.x, injector->buttons[i].value.mouseRelative.y);
+    }
+    else if (injector->buttons[i].mode == CLICK) {
+      Mouse.click(injector->buttons[i].value.buttons);      
     }
   }
 
