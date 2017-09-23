@@ -89,10 +89,11 @@ void inject(const Injector_t* injector, const GameCubeData_t* curDataP) {
       didJoystick = true;
     }
     else if (injector->buttons[i].mode == MOUSE_RELATIVE) {
-      Mouse.move(injector->buttons[i].value.mouseRelative.x, injector->buttons[i].value.mouseRelative.y);
+      if (!prevButtons[i] && curButtons[i])
+        Mouse.move(injector->buttons[i].value.mouseRelative.x, injector->buttons[i].value.mouseRelative.y);
     }
     else if (injector->buttons[i].mode == CLICK) {
-      if (curButtons[i] != prevButtons[i]) 
+      if (!prevButtons[i] && curButtons[i])
         Mouse.click(injector->buttons[i].value.buttons);      
     }
   }
