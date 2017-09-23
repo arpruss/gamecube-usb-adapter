@@ -7,7 +7,7 @@ bool didJoystick;
 
 void toButtonArray(uint8_t* buttons, const GameCubeData_t* data) {
   for (int i=0; i<numberOfHardButtons; i++)
-    buttons[i] = 0 != data->buttons & buttonMasks[i];
+    buttons[i] = 0 != (data->buttons & buttonMasks[i]);
   buttons[virtualButtonShoulderRightPartial] = data->shoulderRight>0;
   buttons[virtualButtonShoulderLeftPartial] = data->shoulderLeft>0;
 }
@@ -92,7 +92,8 @@ void inject(const Injector_t* injector, const GameCubeData_t* curDataP) {
       Mouse.move(injector->buttons[i].value.mouseRelative.x, injector->buttons[i].value.mouseRelative.y);
     }
     else if (injector->buttons[i].mode == CLICK) {
-      Mouse.click(injector->buttons[i].value.buttons);      
+      if (curButtons[i] != prevButtons[i]) 
+        Mouse.click(injector->buttons[i].value.buttons);      
     }
   }
 

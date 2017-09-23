@@ -30,8 +30,8 @@ const uint32_t numInjectionModes = sizeof(injectors)/sizeof(*injectors);
 
 const uint32_t indicatorLEDs[] = { PA0, PA1, PA2, PA3 };
 const int numIndicators = sizeof(indicatorLEDs)/sizeof(*indicatorLEDs);
-const uint32_t downButton = PA4;
-const uint32_t upButton = PA5;
+const uint32_t downButton = PA5;
+const uint32_t upButton = PA4;
 
 gpio_dev* const ledPort = GPIOB;
 const uint8_t ledPin = 12;
@@ -53,10 +53,13 @@ uint8_t fails;
 Debounce debounceDown(downButton, HIGH);
 Debounce debounceUp(upButton, HIGH);
 
-void updateDisplay() {
-  uint8_t x = numInjectionModes >= 16 ? injectionMode : injectionMode+1;
+void displayNumber(uint8_t x) {
   for (int i=0; i<numIndicators; i++, x>>=1) 
-    digitalWrite(indicatorLEDs[i], x&1);
+    digitalWrite(indicatorLEDs[i], 1^(x&1));
+}
+
+void updateDisplay() {
+  displayNumber(numInjectionModes >= 16 ? injectionMode : injectionMode+1);
 }
 
 void setup() {
@@ -187,20 +190,24 @@ uint8_t gameCubeReceiveReport(GameCubeData_t* data) {
 
 void loop() {
   GameCubeData_t data;
-  
-  if (debounceUp.wasPressed()) {
-    if (injectionMode == 0)
-      injectionMode = numInjectionModes-1;
-    else
-      injectionMode--;
-    updateDisplay();
+
+  uint32_t t0 = millis();
+
+  while((millis()-t0) < 6) {
+    if (debounceDown.wasPressed()) {
+      if (injectionMode == 0)
+        injectionMode = numInjectionModes-1;
+      else
+        injectionMode--;
+      updateDisplay();
+    }
+    
+    if (debounceUp.wasPressed()) {
+      injectionMode = (injectionMode+1) % numInjectionModes;
+      updateDisplay();
+    }
   }
-  
-  if (debounceDown.wasPressed()) {
-    injectionMode = (injectionMode+1) % numInjectionModes;
-    updateDisplay();
-  }
-  
+
   if (gameCubeReceiveReport(&data, 0)) {
 #ifdef SERIAL_DEBUG
     Serial.println("buttons1 = "+String(data.buttons));  
@@ -216,6 +223,5 @@ void loop() {
     Serial.println("fail");
 #endif
   }
-  delay(6);
 }
 
