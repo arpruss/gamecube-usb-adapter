@@ -25,7 +25,6 @@
 
 // TODO: replace pinMode() with something fast
 
-uint32_t injectionMode = 0;
 const uint32_t numInjectionModes = sizeof(injectors)/sizeof(*injectors);
 
 const uint32_t indicatorLEDs[] = { PA0, PA1, PA2, PA3 };
@@ -37,6 +36,8 @@ gpio_dev* const ledPort = GPIOB;
 const uint8_t ledPin = 12;
 const uint8_t ledPinID = PB12;
 
+const uint32_t saveInjectionModeAfterMillis = 15000ul; // only save a mode if it's been used 15 seconds; this saves flash
+
 const uint32_t gcPinID = PA6;
 const uint8_t gcPin = 6;
 gpio_dev* const gcPort = GPIOA;
@@ -44,6 +45,10 @@ const uint32_t cyclesPerUS = (SystemCoreClock/1000000ul);
 const uint32_t quarterBitSendingCycles = cyclesPerUS*5/4;
 const uint32_t bitReceiveCycles = cyclesPerUS*4;
 const uint32_t halfBitReceiveCycles = cyclesPerUS*2;
+
+uint32_t injectionMode = 0;
+uint32_t savedInjectionMode = 0;
+uint32_t lastChangedModeTime;
 
 volatile uint32 *gcPortPtr;
 uint32_t gcPinBitmap;
@@ -82,7 +87,13 @@ void setup() {
 #endif
   pinMode(ledPinID, OUTPUT);
 
+  injectionMode = loadInjectionMode();
+  savedInjectionMode = injectionMode;
+  if (injectionMode > numInjectionModes)
+    injectionMode = 0;
   updateDisplay();
+
+  lastChangedModeTime = 0;
 }
 
 // at most 32 bits can be sent
@@ -199,13 +210,20 @@ void loop() {
         injectionMode = numInjectionModes-1;
       else
         injectionMode--;
+      lastChangedModeTime = millis();
       updateDisplay();
     }
     
     if (debounceUp.wasPressed()) {
       injectionMode = (injectionMode+1) % numInjectionModes;
+      lastChangedModeTime = millis();
       updateDisplay();
     }
+  }
+
+  if (savedInjectionMode != injectionMode && (millis()-lastChangedModeTime) >= saveInjectionModeAfterMillis) {
+    saveInjectionMode(injectionMode);
+    savedInjectionMode = injectionMode;
   }
 
   if (gameCubeReceiveReport(&data, 0)) {

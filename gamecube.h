@@ -1,6 +1,9 @@
 #ifndef _GAMECUBE_H
 #define _GAMECUBE_H
 
+uint8_t loadInjectionMode(void);
+void saveInjectionMode(uint8_t mode);
+
 typedef struct {
   uint16_t buttons;
   uint8_t joystickX;
