@@ -28,11 +28,16 @@ const uint16_t maskShoulderRight = 0x2000;
 const uint16_t maskShoulderLeft = 0x4000;
 
 const uint8_t shoulderThreshold = 1;
+const uint8_t directionThreshold = 100;
 const uint16_t buttonMasks[] = { maskA, maskB, maskX, maskY, maskStart, maskDLeft, maskDRight, maskDDown, maskDUp, maskZ, maskShoulderRight, maskShoulderLeft };
 const int numberOfHardButtons = sizeof(buttonMasks)/sizeof(*buttonMasks);
-const uint16_t virtualButtonShoulderRightPartial = numberOfHardButtons;
-const uint16_t virtualButtonShoulderLeftPartial = numberOfHardButtons+1;
-const int numberOfButtons = numberOfHardButtons+2;
+const uint16_t virtualShoulderRightPartial = numberOfHardButtons;
+const uint16_t virtualShoulderLeftPartial = numberOfHardButtons+1;
+const uint16_t virtualLeft = numberOfHardButtons+2;
+const uint16_t virtualRight = numberOfHardButtons+3;
+const uint16_t virtualDown = numberOfHardButtons+4;
+const uint16_t virtualUp = numberOfHardButtons+5;
+const int numberOfButtons = numberOfHardButtons+6;
 
 #define UNDEFINED 0
 #define JOY 'j'
@@ -81,6 +86,10 @@ const InjectedButton_t defaultJoystickButtons[numberOfButtons] = {
     { JOY, {.button = 7 } },           // left shoulder button
     { 0,   {.key = 0 } },           // right shoulder button partial
     { 0,   {.key = 0 } },           // left shoulder button partial
+    { 0,   {.key = 0 } },           // virtual left
+    { 0,   {.key = 0 } },           // virtual right
+    { 0,   {.key = 0 } },           // virtual down
+    { 0,   {.key = 0 } },           // virtual up
 };
 
 const InjectedButton_t jetsetJoystickButtons[numberOfButtons] = {
@@ -98,6 +107,10 @@ const InjectedButton_t jetsetJoystickButtons[numberOfButtons] = {
     { 0,   {.key = 0 } },           // left shoulder button
     { 0,   {.key = 6 } },           // right shoulder button partial
     { 0,   {.key = 7 } },           // left shoulder button partial
+    { 0,   {.key = 0 } },           // virtual left
+    { 0,   {.key = 0 } },           // virtual right
+    { 0,   {.key = 0 } },           // virtual down
+    { 0,   {.key = 0 } },           // virtual up
 };
 
 const InjectedButton_t dpadWASDButtons[numberOfButtons] = {
@@ -115,6 +128,10 @@ const InjectedButton_t dpadWASDButtons[numberOfButtons] = {
     { 0,   {.key = 0 } },           // left shoulder button
     { 0,   {.key = 0 } },           // right shoulder button partial
     { 0,   {.key = 0 } },           // left shoulder button partial
+    { KEY,   {.key = 'a' } },           // virtual left
+    { KEY,   {.key = 'd' } },           // virtual right
+    { KEY,   {.key = 's' } },           // virtual down
+    { KEY,   {.key = 'w' } },           // virtual up
 };
 
 const InjectedButton_t dpadArrowWithCTRL[numberOfButtons] = {
@@ -132,6 +149,10 @@ const InjectedButton_t dpadArrowWithCTRL[numberOfButtons] = {
     { 0,   {.key = 0 } },           // left shoulder button
     { 0,   {.key = 0 } },           // right shoulder button partial
     { 0,   {.key = 0 } },           // left shoulder button partial
+    { KEY,   {.key = KEY_LEFT_ARROW } },           // virtual left
+    { KEY,   {.key = KEY_RIGHT_ARROW } },           // virtual right
+    { KEY,   {.key = KEY_DOWN_ARROW } },           // virtual down
+    { KEY,   {.key = KEY_UP_ARROW } },           // virtual up
 };
 
 const InjectedButton_t dpadArrowWithSpace[numberOfButtons] = {
@@ -149,6 +170,10 @@ const InjectedButton_t dpadArrowWithSpace[numberOfButtons] = {
     { 0,   {.key = 0 } },           // left shoulder button
     { 0,   {.key = 0 } },           // right shoulder button partial
     { 0,   {.key = 0 } },           // left shoulder button partial
+    { KEY,   {.key = KEY_LEFT_ARROW } },           // virtual left
+    { KEY,   {.key = KEY_RIGHT_ARROW } },           // virtual right
+    { KEY,   {.key = KEY_DOWN_ARROW } },           // virtual down
+    { KEY,   {.key = KEY_UP_ARROW } },           // virtual up
 };
 
 const InjectedButton_t dpadQBert[numberOfButtons] = {
@@ -166,6 +191,10 @@ const InjectedButton_t dpadQBert[numberOfButtons] = {
     { 0,   {.key = 0 } },           // left shoulder button
     { 0,   {.key = 0 } },           // right shoulder button partial
     { 0,   {.key = 0 } },           // left shoulder button partial
+    { KEY,   {.key = KEY_LEFT_ARROW } },           // virtual left
+    { KEY,   {.key = KEY_RIGHT_ARROW } },           // virtual right
+    { KEY,   {.key = KEY_DOWN_ARROW } },           // virtual down
+    { KEY,   {.key = KEY_UP_ARROW } },           // virtual up
 };
 
 const InjectedButton_t dpadMC[numberOfButtons] = {
@@ -183,6 +212,10 @@ const InjectedButton_t dpadMC[numberOfButtons] = {
     { 0,   {.key = 0 } },           // left shoulder button
     { 0,   {.key = 0 } },           // right shoulder button partial
     { 0,   {.key = 0 } },           // left shoulder button partial
+    { 0,   {.key = 0 } },           // virtual left
+    { 0,   {.key = 0 } },           // virtual right
+    { 0,   {.key = 0 } },           // virtual down
+    { 0,   {.key = 0 } },           // virtual up
 };
 
 const Injector_t injectors[] = {

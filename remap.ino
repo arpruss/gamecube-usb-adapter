@@ -5,11 +5,33 @@ uint8_t curButtons[numberOfButtons];
 GameCubeData_t oldData;
 bool didJoystick;
 
+void buttonizeStick(uint8_t* buttons, uint8_t x, uint8_t y) {
+  int dx = abs((int)x-(int)128);
+  int dy = abs((int)y-(int)128);
+  if (dx > dy) {
+      if(dx > directionThreshold) {
+        if (x < 128)
+          buttons[virtualLeft] = 1;
+        else
+          buttons[virtualRight] = 1;
+      }
+  }
+  else if (dx < dy && dy > directionThreshold) {
+    if (y < 128)
+      buttons[virtualDown] = 1;
+    else 
+      buttons[virtualUp] = 1;
+  }
+}
+
 void toButtonArray(uint8_t* buttons, const GameCubeData_t* data) {
   for (int i=0; i<numberOfHardButtons; i++)
     buttons[i] = 0 != (data->buttons & buttonMasks[i]);
-  buttons[virtualButtonShoulderRightPartial] = data->shoulderRight>0;
-  buttons[virtualButtonShoulderLeftPartial] = data->shoulderLeft>0;
+  buttons[virtualShoulderRightPartial] = data->shoulderRight>0;
+  buttons[virtualShoulderLeftPartial] = data->shoulderLeft>0;
+  buttons[virtualLeft] = buttons[virtualRight] = buttons[virtualDown] = buttons[virtualUp] = 0;
+  buttonizeStick(buttons, data->joystickX, data->joystickY);
+  buttonizeStick(buttons, data->cX, data->cY);
 }
 
 void joystickBasic(const GameCubeData_t* data) {
