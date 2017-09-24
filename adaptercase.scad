@@ -1,5 +1,7 @@
 use <roundedsquare.scad>;
 
+includeBottom = 1; // [1:yes, 0:no]
+includeTop = 1; // [1:yes, 0:no]
 innerLength = 80;
 extraWidth = 15;
 sideWall = 1.5;
@@ -25,17 +27,15 @@ topOffset = 4.8;
 topScrewX1 = 6;
 topScrewXSpacing = 54.66;
 buttonHoleDiameter = 4.9;
-button1OffsetFromHole = 0.5*25.4;
+button1OffsetFromHole = 12.7;
 button2OffsetFromHole = 5.78;
 ledHoleDiameter = 4;
-led1XOffsetFromButton1 = .4*25.4;  
-led1YOffsetFromButton1 = .05*25.4;  
-ledSpacing = .2*25.4;
+led1XOffsetFromButton1 = 10.16;  
+led1YOffsetFromButton1 = 1.27;  
+ledSpacing = 5.08;
 pcbToPCBSpacing = 12;
 usbPortWidth = 10;
 usbPortHeight = 4.5;
-ventWidth = 2;
-ventMargin = 4;
 
 module dummy() {}
 
@@ -49,8 +49,6 @@ bottomFatPillarLength = bottomHeight+bottomOverlap;
 topHeight = topWall + topOffset + pcbThickness + max(topUnderlap,pcbToPCBSpacing);
 topFatPillarLength = topHeight-topUnderlap;
 
-echo(topScrewXSpacing-button2OffsetFromHole-button1OffsetFromHole);
-
 fatPillarLocations = [
     [-sideWall+fatPillarDiameter/2,-sideWall+fatPillarDiameter/2,0],
     [-sideWall+fatPillarDiameter/2,innerWidth+sideWall-fatPillarDiameter/2,0],
@@ -60,7 +58,7 @@ fatPillarLocations = [
 stm32ScrewX1 = stm32ScrewOffset;
 stm32ScrewY1 = fatPillarLocations[0][1]+fatPillarDiameter/2+thinPillarDiameter/2;
 topScrewY = innerWidth-stm32ScrewY1-stm32ScrewYSpacing/2;
-thinPillarLocations = [
+bottomThinPillarLocations = [
     [stm32ScrewX1,stm32ScrewY1,0],
     [stm32ScrewX1+stm32ScrewXSpacing,stm32ScrewY1,0],
     [stm32ScrewX1,stm32ScrewY1+stm32ScrewYSpacing,0],
@@ -115,20 +113,17 @@ module bottom() {
             for (p=fatPillarLocations)
                 translate(p) fatPillar();
             linear_extrude(height=bottomHeight+nudge) sideWalls();
-            for (p=thinPillarLocations)
+            for (p=bottomThinPillarLocations)
                 translate(p) thinPillar(height=bottomWall+bottomOffset);
             translate([innerLength-2*sideWall,stm32ScrewY1+stm32ScrewYSpacing/2-cableDiameter*1.5,0]) cube([2*sideWall+nudge,3*cableDiameter,bottomHeight]);
         }
         for (p=fatPillarLocations)
             translate(p) fatPillar(hole=true);
         translate([0,0,bottomHeight]) linear_extrude(height=bottomOverlap+nudge) tweakedSideWalls();
-        for (p=thinPillarLocations)
-            translate([0,0,bottomWall]) translate(p) thinPillar(hole=true,height=bottomWall+nudge);
+        for (p=bottomThinPillarLocations)
+            translate([0,0,bottomWall]) translate(p) thinPillar(hole=true,height=bottomHeight+nudge);
        translate([innerLength-2*sideWall,stm32ScrewY1+stm32ScrewYSpacing/2,bottomHeight]) rotate([0,90,0]) cylinder(d=cableDiameter,h=3*sideWall+2*nudge);
     }
-}
-
-module vent(width, height, thickness) {
 }
 
 module top() {
@@ -159,10 +154,13 @@ module top() {
         translate([topScrewX1+button1OffsetFromHole,topScrewY,-nudge]) cylinder(d=buttonHoleDiameter,h=topWall+2*nudge);
         translate([topScrewX1+topScrewXSpacing-button2OffsetFromHole,topScrewY,-nudge]) cylinder(d=buttonHoleDiameter,h=topWall+2*nudge);
         for(i=[0:3]) translate([topScrewX1+button1OffsetFromHole+led1XOffsetFromButton1+i*ledSpacing,topScrewY+led1YOffsetFromButton1,-nudge]) cylinder(d=ledHoleDiameter,h=topWall+2*nudge);
-        translate([fatPillarDiameter-sideWall+ventMargin,-sideWall-nudge,topWall+ventMargin]) vent(innerLength+2*sideWall-2*ventMargin,ventMargin,sideWall+2*nudge);
-        translate([fatPillarDiameter-sideWall+ventMargin,innerWidth-nudge,topWall+ventMargin]) vent(innerLength+2*sideWall-2*ventMargin,ventMargin,sideWall+2*nudge);
+//        translate([fatPillarDiameter-sideWall+ventMargin,-sideWall-nudge,topWall+ventMargin]) vent(innerLength+2*sideWall-2*ventMargin,ventMargin,sideWall+2*nudge);
+//        translate([fatPillarDiameter-sideWall+ventMargin,innerWidth-nudge,topWall+ventMargin]) vent(innerLength+2*sideWall-2*ventMargin,ventMargin,sideWall+2*nudge);
     }
 }
 
-//bottom();
-top();
+if (includeBottom)
+    bottom();
+if (includeTop)
+    translate([0,innerWidth+sideWall+8,0])
+    top();
