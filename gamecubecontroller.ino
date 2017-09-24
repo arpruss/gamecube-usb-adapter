@@ -1,29 +1,36 @@
 // gamecube controller adapter
+// This requires this branch of the Arduino STM32 board: 
+//    https://github.com/arpruss/Arduino_STM32/tree/addMidiHID
+// Software steps:
+//    Install this bootloader: https://github.com/rogerclarkmelbourne/STM32duino-bootloader/blob/master/binaries/generic_boot20_pb12.bin?raw=true
+//    Instructions here: http://wiki.stm32duino.com/index.php?title=Burning_the_bootloader#Flashing_the_bootloader_onto_the_Black_Pill_via_UART_using_a_Windows_machine//
+//    Install official Arduino Zero board
+//    Put the contents of the above branch in your Arduino/Hardware folder
+//    If on Windows, run drivers\win\install_drivers.bat
+// Note: You may need to adjust permissions on some of the dll, exe and bat files.
 
 #include "dwt.h"
+
+// Facing Gamecube socket (as on console), flat on top:
+//    123
+//    ===
+//    456
+
+// Connections:
+// Gamecube 2--PA6
+// Gamecube 2--1Kohm--3.3V
+// Gamecube 3--GND
+// Gamecube 4--GND
+// Gamecube 6--3.3V
+// optional: connect Gamecube 1--5V (rumble, make sure there is enough current)
+
+// Put LEDs + resistors (100-220 ohm) between PA0,PA1,PA2,PA3 and 3.3V
+// Put momentary pushbuttons between PA4,PA5 and 3.3V
+
 #include "debounce.h"
 #include "gamecube.h"
 
 #undef SERIAL_DEBUG
-
-// brainlink purple (rightmost) 3.3V
-// brainlink 4 from right pin 0
-// brainlink red (leftmost) GND
-
-// 1K resistor between 3.3V and Gamecube data pin
-// facing socket, flat on top: 
-//    123
-//    ===
-//    456
-// connect: 2--PA6
-// connect: 2--1K--3.3V
-// connect: 3--GND
-// connect: 4--GND
-// connect: 6--3.3V
-// LEDs: PA0, PA1, PA2, PA3
-// optional: connect 1--5V (rumble, make sure there is enough current)
-
-// TODO: replace pinMode() with something fast
 
 const uint32_t numInjectionModes = sizeof(injectors)/sizeof(*injectors);
 
@@ -41,6 +48,7 @@ const uint32_t saveInjectionModeAfterMillis = 15000ul; // only save a mode if it
 const uint32_t gcPinID = PA6;
 const uint8_t gcPin = 6;
 gpio_dev* const gcPort = GPIOA;
+
 const uint32_t cyclesPerUS = (SystemCoreClock/1000000ul);
 const uint32_t quarterBitSendingCycles = cyclesPerUS*5/4;
 const uint32_t bitReceiveCycles = cyclesPerUS*4;
