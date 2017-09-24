@@ -22,6 +22,7 @@
 // Gamecube 3--GND
 // Gamecube 4--GND
 // Gamecube 6--3.3V
+// Put a 10 uF and 0.1 uF capacitor between 3.3V and GND right on the black pill board.
 // optional: connect Gamecube 1--5V (rumble, make sure there is enough current)
 
 // Put LEDs + resistors (100-220 ohm) between PA0,PA1,PA2,PA3 and 3.3V
