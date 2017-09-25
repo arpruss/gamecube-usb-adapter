@@ -28,6 +28,8 @@
 
 //#include "c:/users/alexander_pruss/Documents/Arduino/hardware/addMidiHID/STM32F1/system/libmaple/include/libmaple/iwdg.h"
 #include <libmaple/iwdg.h>
+#include <libmaple/usb_cdcacm.h>
+#include <libmaple/usb.h>
 #include "dwt.h"
 #include "debounce.h"
 #include "gamecube.h"
@@ -225,6 +227,13 @@ void loop() {
     saveInjectionMode(injectionMode);
     savedInjectionMode = injectionMode;
   }
+
+#ifndef SERIAL_DEBUG
+  if (!usb_is_connected(USBLIB) || !usb_is_configured(USBLIB)) {
+    gpio_write_bit(ledPort, ledPin, 1);
+    return;
+  } // TODO: fix library so it doesn't send on a disconnected connection //
+#endif
 
   if (gameCubeReceiveReport(&data, 0)) {
 #ifdef SERIAL_DEBUG
