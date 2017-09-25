@@ -9,8 +9,6 @@
 //    If on Windows, run drivers\win\install_drivers.bat
 // Note: You may need to adjust permissions on some of the dll, exe and bat files.
 
-#include "dwt.h"
-
 // Facing Gamecube socket (as on console), flat on top:
 //    123
 //    ===
@@ -28,11 +26,15 @@
 // Put LEDs + resistors (100-220 ohm) between PA0,PA1,PA2,PA3 and 3.3V
 // Put momentary pushbuttons between PA4,PA5 and 3.3V
 
+//#include "c:/users/alexander_pruss/Documents/Arduino/hardware/addMidiHID/STM32F1/system/libmaple/include/libmaple/iwdg.h"
+#include <libmaple/iwdg.h>
+#include "dwt.h"
 #include "debounce.h"
 #include "gamecube.h"
 
 #undef SERIAL_DEBUG
 
+const uint32_t watchdogSeconds = 10;
 const uint32_t numInjectionModes = sizeof(injectors)/sizeof(*injectors);
 
 const uint32_t indicatorLEDs[] = { PA0, PA1, PA2, PA3 };
@@ -103,6 +105,8 @@ void setup() {
   updateDisplay();
 
   lastChangedModeTime = 0;
+
+  iwdg_init(IWDG_PRE_256, watchdogSeconds*156);
 }
 
 // at most 32 bits can be sent
@@ -211,6 +215,7 @@ uint8_t gameCubeReceiveReport(GameCubeData_t* data) {
 void loop() {
   GameCubeData_t data;
 
+  iwdg_feed();
   uint32_t t0 = millis();
 
   while((millis()-t0) < 6) {
@@ -230,18 +235,21 @@ void loop() {
     }
   }
 
+  iwdg_feed();
   if (savedInjectionMode != injectionMode && (millis()-lastChangedModeTime) >= saveInjectionModeAfterMillis) {
     saveInjectionMode(injectionMode);
     savedInjectionMode = injectionMode;
   }
 
+  iwdg_feed();
   if (gameCubeReceiveReport(&data, 0)) {
 #ifdef SERIAL_DEBUG
     Serial.println("buttons1 = "+String(data.buttons));  
     Serial.println("joystick = "+String(data.joystickX)+","+String(data.joystickY));  
     Serial.println("c-stick = "+String(data.cX)+","+String(data.cY));  
     Serial.println("shoulders = "+String(data.shoulderLeft)+","+String(data.shoulderRight));      
-#else
+#else 
+    iwdg_feed();
     inject(injectors + injectionMode, &data);
 #endif
   }
