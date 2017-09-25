@@ -26,7 +26,6 @@
 // Put LEDs + resistors (100-220 ohm) between PA0,PA1,PA2,PA3 and 3.3V
 // Put momentary pushbuttons between PA4,PA5 and 3.3V
 
-//#include "c:/users/alexander_pruss/Documents/Arduino/hardware/addMidiHID/STM32F1/system/libmaple/include/libmaple/iwdg.h"
 #include <libmaple/iwdg.h>
 #include <libmaple/usb_cdcacm.h>
 #include <libmaple/usb.h>
@@ -100,7 +99,9 @@ void setup() {
 #endif
   pinMode(ledPinID, OUTPUT);
 
-  injectionMode = loadInjectionMode();
+  injectionMode = EEPROM254_getValue();
+  if (injectionMode == 0xFF)
+    injectionMode = 0;
   savedInjectionMode = injectionMode;
   if (injectionMode > numInjectionModes)
     injectionMode = 0;
@@ -224,15 +225,17 @@ void loop() {
   }
 
   if (savedInjectionMode != injectionMode && (millis()-lastChangedModeTime) >= saveInjectionModeAfterMillis) {
-    saveInjectionMode(injectionMode);
+    EEPROM254_storeValue(injectionMode);
     savedInjectionMode = injectionMode;
   }
 
 #ifndef SERIAL_DEBUG
   if (!usb_is_connected(USBLIB) || !usb_is_configured(USBLIB)) {
+    // we're disconnected; save power by not talking to controller
     gpio_write_bit(ledPort, ledPin, 1);
     return;
-  } // TODO: fix library so it doesn't send on a disconnected connection //
+  } // TODO: fix library so it doesn't send on a disconnected connection; currently, we're relying on the watchdog reset 
+    // if a disconnection happens at the wrong time
 #endif
 
   if (gameCubeReceiveReport(&data, 0)) {
@@ -242,7 +245,8 @@ void loop() {
     Serial.println("c-stick = "+String(data.cX)+","+String(data.cY));  
     Serial.println("shoulders = "+String(data.shoulderLeft)+","+String(data.shoulderRight));      
 #else 
-    inject(injectors + injectionMode, &data);
+    if (usb_is_connected(USBLIB) && usb_is_configured(USBLIB)) 
+      inject(injectors + injectionMode, &data);
 #endif
   }
   else {
