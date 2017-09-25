@@ -178,7 +178,7 @@ const InjectedButton_t dpadArrowWithSpace[numberOfButtons] = {
 
 const InjectedButton_t dpadQBert[numberOfButtons] = {
     { KEY, {.key = '1'} },          // A
-    { KEY, {.key = '2'} }, // B
+    { KEY, {.key = '2'} },          // B
     { 0,   {.key = 0 } },           // X
     { 0,   {.key = 0 } },           // Y
     { KEY, {.key = '+' } },           // Start
@@ -219,8 +219,8 @@ const InjectedButton_t dpadMC[numberOfButtons] = {
 };
 
 const Injector_t injectors[] = {
-  { defaultJoystickButtons, joystickDualShoulder },
   { defaultJoystickButtons, joystickUnifiedShoulder },
+  { defaultJoystickButtons, joystickDualShoulder },
   { jetsetJoystickButtons, joystickNoShoulder },
   { dpadWASDButtons, NULL },
   { dpadArrowWithCTRL, NULL },

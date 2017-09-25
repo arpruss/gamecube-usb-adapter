@@ -84,7 +84,8 @@ void joystickDualShoulder(const GameCubeData_t* data) {
 void joystickUnifiedShoulder(const GameCubeData_t* data) {
     joystickBasic(data);
     joystickPOV(data);
-    Joystick.sliderLeft(255+data->shoulderRight-data->shoulderLeft);
+    //Joystick.sliderLeft(0);
+    Joystick.sliderRight(255+data->shoulderRight-data->shoulderLeft);
 }
 
 void joystickNoShoulder(const GameCubeData_t* data) {
