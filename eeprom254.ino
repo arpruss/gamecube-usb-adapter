@@ -6,8 +6,8 @@
 
 // The storage method is incompatible with the one implemented by the EEPROM-emulation library, as it's optimized
 // for our almost-byte usage case. The two flash pages are treated as a single unit, and the last non-0xFF byte
-// stored in them is the current data value. To write a new a byte, first we check if we can change the last byte
-// to the desired one by setting some bits to zero. If not, we write a new byte. If we've run out of space on the
+// stored in them is the current data value. To write a new byte, first we check if we can change the last byte
+// to the desired one by programming some bits to zero. If not, we write a new byte. If we've run out of space on the
 // two pages, then we erase them both.
 
 // Note: Flash storage is rated for 10K cycles.
