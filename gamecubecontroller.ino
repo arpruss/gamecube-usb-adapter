@@ -134,20 +134,6 @@ void gameCubeSendBits(uint32_t data, uint8_t bits) {
   } while(bits);
 }
 
-void disableIRQ() {
-  __asm volatile 
-  (
-      " CPSID   I        \n"
-  );  
-}
-
-void enableIRQ() {
-  __asm volatile 
-  (
-      " CPSIE   I        \n"
-  );    
-}
-
 // bits must be greater than 0
 uint8_t gameCubeReceiveBits(void* data0, uint32_t bits) {
   uint8_t* data = (uint8_t*)data0;
@@ -187,16 +173,16 @@ uint8_t gameCubeReceiveBits(void* data0, uint32_t bits) {
 
 uint8_t gameCubeReceiveReport(GameCubeData_t* data, uint8_t rumble) {
   if (fails >= maxFails) {
-    disableIRQ();
+    nvic_globalirq_disable();
     gameCubeSendBits(0b000000001l, 9);
-    enableIRQ();
+    nvic_globalirq_enable();
     delayMicroseconds(400);
     fails = 0;
   }              
-  disableIRQ();
+  nvic_globalirq_disable();
   gameCubeSendBits(rumble ? 0b0100000000000011000000011l : 0b0100000000000011000000001l, 25); 
   uint8_t success = gameCubeReceiveBits(data, 64);
-  enableIRQ();
+  nvic_globalirq_enable();
   if (success && 0 == (data->buttons & 0x80) && (data->buttons & 0x8000) ) {
     gpio_write_bit(ledPort, ledPin, 0);
     return 1;
@@ -235,13 +221,11 @@ void loop() {
     }
   }
 
-  iwdg_feed();
   if (savedInjectionMode != injectionMode && (millis()-lastChangedModeTime) >= saveInjectionModeAfterMillis) {
     saveInjectionMode(injectionMode);
     savedInjectionMode = injectionMode;
   }
 
-  iwdg_feed();
   if (gameCubeReceiveReport(&data, 0)) {
 #ifdef SERIAL_DEBUG
     Serial.println("buttons1 = "+String(data.buttons));  
@@ -249,7 +233,6 @@ void loop() {
     Serial.println("c-stick = "+String(data.cX)+","+String(data.cY));  
     Serial.println("shoulders = "+String(data.shoulderLeft)+","+String(data.shoulderRight));      
 #else 
-    iwdg_feed();
     inject(injectors + injectionMode, &data);
 #endif
   }
