@@ -27,11 +27,11 @@ void buttonizeStick(uint8_t* buttons, uint8_t x, uint8_t y) {
 void toButtonArray(uint8_t* buttons, const GameCubeData_t* data) {
   for (int i=0; i<numberOfHardButtons; i++)
     buttons[i] = 0 != (data->buttons & buttonMasks[i]);
-  buttons[virtualShoulderRightPartial] = data->shoulderRight>0;
-  buttons[virtualShoulderLeftPartial] = data->shoulderLeft>0;
+  buttons[virtualShoulderRightPartial] = data->shoulderRight>=shoulderThreshold;
+  buttons[virtualShoulderLeftPartial] = data->shoulderLeft>=shoulderThreshold;
   buttons[virtualLeft] = buttons[virtualRight] = buttons[virtualDown] = buttons[virtualUp] = 0;
   buttonizeStick(buttons, data->joystickX, data->joystickY);
-  buttonizeStick(buttons, data->cX, data->cY);
+  buttonizeStick(buttons, data->cX, data->cY); 
 }
 
 void joystickBasic(const GameCubeData_t* data) {
@@ -95,9 +95,10 @@ void joystickNoShoulder(const GameCubeData_t* data) {
 
 void inject(const Injector_t* injector, const GameCubeData_t* curDataP) {
   didJoystick = false;
-  
+
   memcpy(prevButtons, curButtons, sizeof(curButtons));
   toButtonArray(curButtons, curDataP);
+
   for (int i=0; i<numberOfButtons; i++) {
     if (injector->buttons[i].mode == KEY) {
       if (curButtons[i] != prevButtons[i]) {
