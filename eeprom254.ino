@@ -16,58 +16,56 @@
 // This will result in 9.5 years of operation. 
 // That's good enough!
 
+static boolean invalid = true;
 static uint32_t lastBase = 0;
 static uint32_t lastOffset = 0;
 
 #define EEPROM254_MEMORY_SIZE (2*EEPROM_PAGE_SIZE)
-#define GET_BYTE(address) (*(__io uint8_t*)address)
-#define GET_HALF_WORD(address) (*(__io uint16_t*)address)
-#define GET_WORD(address) (*(__io uint32_t*)address)
+#define GET_BYTE(address) (*(__io uint8_t*)(address))
+#define GET_HALF_WORD(address) (*(__io uint16_t*)(address))
+#define GET_WORD(address) (*(__io uint32_t*)(address))
 
 #define EEPROM254_MAGIC (uint32_t)0x1b70f1cc
 
 static void findValidValueAddress(void) {
   if (GET_BYTE(EEPROM_PAGE0_BASE+4) == 0xFF) { // page 0 is blank
-    lastBase = 0;
+    lastBase = 0; // no data at all
     return;
   }
   
-  if (GET_BYTE(EEPROM_PAGE1_BASE+4) == 0xFF) 
-    lastBase = EEPROM_PAGE0_BASE; // page 1 is blank, so any data is on page 0
+  if (GET_BYTE(EEPROM_PAGE1_BASE+4) != 0xFF) // is there any data on page 1?
+    lastBase = EEPROM_PAGE1_BASE; 
   else
-    lastBase = EEPROM_PAGE1_BASE;
+    lastBase = EEPROM_PAGE0_BASE;
 
-  for (uint32_t address = EEPROM_PAGE_SIZE-4 ; address >= 4 ; address -= 4) {
-    uint32 w = GET_WORD(address);
-    if (w != 0xFFFFFFFF) {
-      if (w & 0xFF000000) {
-        lastOffset = address+3;
-      }
-      else if (w & 0x00FF0000) {
-        lastOffset = address+2;
-      }
-      else if (w & 0x0000FF00) {
-        lastOffset = address+1;
-      }
-      else {
+  for (uint32_t address = EEPROM_PAGE_SIZE-1 ; address >= 4 ; address--) {
+    if (0xFF != GET_BYTE(lastBase + address)) {
         lastOffset = address;
-      }
+        return;
     }
   }
 
   // weird! something changed!
   lastBase = 0;
+  invalid = true;
 }
 
 static bool erasePage(uint32_t base) {
   bool success;
+
   FLASH_Unlock();
   success = ( FLASH_COMPLETE == FLASH_ErasePage(base) );
-  FLASH_Lock();  
+
   success = success && 
-    FLASH_ProgramHalfWord(base, (uint16_t)EEPROM254_MAGIC) &&
-    FLASH_ProgramHalfWord(base+2, (uint16_t)(EEPROM254_MAGIC>>16));
-  return success;
+    FLASH_COMPLETE == FLASH_ProgramHalfWord(base, (uint16_t)EEPROM254_MAGIC) &&
+    FLASH_COMPLETE == FLASH_ProgramHalfWord(base+2, (uint16_t)(EEPROM254_MAGIC>>16));
+  FLASH_Lock();  
+    
+  return success && EEPROM254_MAGIC == GET_WORD(base);
+}
+
+static bool erasePages() {
+  return erasePage(EEPROM_PAGE0_BASE) && erasePage(EEPROM_PAGE1_BASE);
 }
 
 static bool writeByte(uint32_t address, uint8_t value) {
@@ -78,63 +76,114 @@ static bool writeByte(uint32_t address, uint8_t value) {
     halfWord = GET_BYTE(address) | ( (uint16_t)value << 8);
   }
   else {
-    halfWord = value | ( (uint16_t)GET_BYTE(address+1) << 1);
+    halfWord = value | ( (uint16_t)GET_BYTE(address+1) << 8);
   }
 
-  return FLASH_COMPLETE == FLASH_ProgramHalfWord(address, halfWord);
+  FLASH_Unlock();
+  boolean success = FLASH_COMPLETE == FLASH_ProgramHalfWord(address, halfWord);
+  FLASH_Lock();  
+
+  return success;
 }
 
 uint8_t EEPROM254_getValue(void) {
+  if (invalid)
+    return 0xFF;
+    
   if (lastBase == 0) {
     findValidValueAddress();
     if (lastBase == 0) 
       return 0xFF;
   }
 
+#ifdef SERIAL_DEBUG
+  Serial.println("Found value at "+String(lastBase,HEX)+" "+String(lastOffset,HEX)+": "+String(GET_BYTE(lastBase+lastOffset),HEX));
+#endif
+
   return GET_BYTE(lastBase+lastOffset);
 }
 
 bool EEPROM254_storeValue(uint8_t value) {
+#ifdef SERIAL_DEBUG
+  Serial.println("Storage "+String(value,HEX));
+#endif
+  if (invalid) 
+    return false;
+  
   if (lastBase == 0) {
+#ifdef SERIAL_DEBUG
+    Serial.println("Searching...");
+#endif    
     findValidValueAddress();
+    if (invalid)
+      return false;
     if (lastBase == 0) {
+#ifdef SERIAL_DEBUG
+      Serial.println("Not found...");
+#endif    
       lastBase = EEPROM_PAGE0_BASE;
-      lastOffset = 0;
+      lastOffset = 4;
     }
   }
 
-  while ((GET_BYTE(lastBase+lastOffset) & value) != value) {
+  uint8_t cur = GET_BYTE(lastBase+lastOffset);
+  if (cur == value)
+    return true;
+
+  if (cur != 0xFF) {
     lastOffset++;
+    
     if (lastOffset >= EEPROM_PAGE_SIZE) {
       if (lastBase == EEPROM_PAGE0_BASE) {
         lastBase = EEPROM_PAGE1_BASE;
         lastOffset = 4;
       }
       else {
-        if (!erasePage(EEPROM_PAGE0_BASE)) {
-          if (!erasePage(EEPROM_PAGE1_BASE)) {
+        // on page 1, and out of space
+        if (!erasePages()) {
             lastBase = 0;
             lastOffset = 0;
+            invalid = true;
             return false;
-          }
-          lastBase = EEPROM_PAGE1_BASE;
-          lastOffset = 4;
-          break;
         }
         lastBase = EEPROM_PAGE0_BASE;
         lastOffset = 4;
-        break;
       }
     }
   }
-  
+
+#ifdef SERIAL_DEBUG
+  Serial.println("Writing "+String(lastBase,HEX)+" "+String(lastOffset,HEX)+" "+String(value,HEX));
+#endif
   return writeByte(lastBase+lastOffset, value);
 }
 
+static void EEPROM254_reset(void) {
+  if (erasePage(EEPROM_PAGE0_BASE) && erasePage(EEPROM_PAGE1_BASE)) {
+    lastBase = EEPROM_PAGE0_BASE;
+    lastOffset = 4;
+    invalid = false;
+  }
+  else {
+    lastBase = 0;
+    invalid = true;
+  }
+}
+
 static void EEPROM254_init(void) {
-  if (EEPROM254_MAGIC != GET_WORD(EEPROM_PAGE0_BASE))
-    erasePage(EEPROM_PAGE0_BASE);
-  if (EEPROM254_MAGIC != GET_WORD(EEPROM_PAGE1_BASE));
-    erasePage(EEPROM_PAGE0_BASE);
+#ifdef SERIAL_DEBUG  
+  Serial.println("eeprom254 init");
+#endif
+  if (EEPROM254_MAGIC != GET_WORD(EEPROM_PAGE0_BASE) && ! erasePage(EEPROM_PAGE0_BASE) ) {
+    lastBase = 0;
+    invalid = true;
+    return;
+  }
+  if (EEPROM254_MAGIC != GET_WORD(EEPROM_PAGE1_BASE) && ! erasePage(EEPROM_PAGE1_BASE) ) {
+    lastBase = 0;
+    invalid = true;
+    return;
+  }
+  invalid = false;
 }
 

@@ -1,6 +1,8 @@
 #ifndef _GAMECUBE_H
 #define _GAMECUBE_H
 
+//#define SERIAL_DEBUG
+
 uint8_t loadInjectionMode(void);
 void saveInjectionMode(uint8_t mode);
 
@@ -66,6 +68,8 @@ typedef struct {
   InjectedButton_t const * buttons;
   GameCubeDataProcessor_t stick;
 } Injector_t;
+
+#ifndef SERIAL_DEBUG
 
 void joystickNoShoulder(const GameCubeData_t* data);
 void joystickDualShoulder(const GameCubeData_t* data);
@@ -228,6 +232,10 @@ const Injector_t injectors[] = {
   { dpadQBert, NULL },  
   { dpadMC, NULL },  
 };
+
+#else // SERIAL_DEBUG
+const Injector_t injectors[] = { {NULL,NULL},{NULL,NULL},{NULL,NULL},{NULL,NULL},{NULL,NULL},{NULL,NULL},{NULL,NULL},{NULL,NULL} };
+#endif
 
 #endif // _GAMECUBE_H
 

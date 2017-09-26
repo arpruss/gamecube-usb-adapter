@@ -24,7 +24,7 @@
 // optional: connect Gamecube 1--5V (rumble, make sure there is enough current)
 
 // Put LEDs + resistors (100-220 ohm) between PA0,PA1,PA2,PA3 and 3.3V
-// Put momentary pushbuttons between PA4,PA5 and 3.3V
+// Put momentary pushbuttons between PA4 (decrement),PA5 (increment) and 3.3V
 
 #include <libmaple/iwdg.h>
 #include <libmaple/usb_cdcacm.h>
@@ -33,15 +33,13 @@
 #include "debounce.h"
 #include "gamecube.h"
 
-#undef SERIAL_DEBUG
-
 const uint32_t watchdogSeconds = 10;
 const uint32_t numInjectionModes = sizeof(injectors)/sizeof(*injectors);
 
 const uint32_t indicatorLEDs[] = { PA0, PA1, PA2, PA3 };
 const int numIndicators = sizeof(indicatorLEDs)/sizeof(*indicatorLEDs);
-const uint32_t downButton = PA5;
-const uint32_t upButton = PA4;
+const uint32_t downButton = PA4;
+const uint32_t upButton = PA5;
 
 gpio_dev* const ledPort = GPIOB;
 const uint8_t ledPin = 12;
@@ -94,21 +92,26 @@ void setup() {
   
 #ifdef SERIAL_DEBUG
   Serial.begin(115200);
+  delay(2000);
+  Serial.println("gamecube controller adapter");
 #else
   Joystick.setManualReportMode(true);
 #endif
   pinMode(ledPinID, OUTPUT);
 
+  EEPROM254_init();
   injectionMode = EEPROM254_getValue();
   if (injectionMode == 0xFF)
     injectionMode = 0;
-  savedInjectionMode = injectionMode;
+
   if (injectionMode > numInjectionModes)
     injectionMode = 0;
+
+  savedInjectionMode = injectionMode;
+  
   updateDisplay();
 
   lastChangedModeTime = 0;
-
   iwdg_init(IWDG_PRE_256, watchdogSeconds*156);
 }
 
@@ -205,26 +208,46 @@ void loop() {
   GameCubeData_t data;
 
   iwdg_feed();
+  
   uint32_t t0 = millis();
+  while (digitalRead(downButton) == 1 && digitalRead(upButton) == 1 && (millis()-t0)<5000);
+  
+  iwdg_feed();
 
-  while((millis()-t0) < 6) {
-    if (debounceDown.wasPressed()) {
-      if (injectionMode == 0)
-        injectionMode = numInjectionModes-1;
-      else
-        injectionMode--;
-      lastChangedModeTime = millis();
-      updateDisplay();
-    }
-    
-    if (debounceUp.wasPressed()) {
-      injectionMode = (injectionMode+1) % numInjectionModes;
-      lastChangedModeTime = millis();
-      updateDisplay();
-    }
+  if ((millis()-t0)>=5000) {
+    displayNumber(0xF);
+    injectionMode = 0;
+    EEPROM254_reset();
+    updateDisplay();
+    savedInjectionMode = 0;
+  }
+  else {
+    t0 = millis();
+    do {
+      if (debounceDown.wasPressed()) {
+        if (injectionMode == 0)
+          injectionMode = numInjectionModes-1;
+        else
+          injectionMode--;
+        lastChangedModeTime = millis();
+        updateDisplay();
+      }
+      
+      if (debounceUp.wasPressed()) {
+        injectionMode = (injectionMode+1) % numInjectionModes;
+        lastChangedModeTime = millis();
+        updateDisplay();
+  #ifdef SERIAL_DEBUG      
+        Serial.println("Changed to "+String(injectionMode));
+  #endif
+      }
+    } while((millis()-t0) < 6);
   }
 
   if (savedInjectionMode != injectionMode && (millis()-lastChangedModeTime) >= saveInjectionModeAfterMillis) {
+#ifdef SERIAL_DEBUG
+    Serial.println("Need to store");
+#endif
     EEPROM254_storeValue(injectionMode);
     savedInjectionMode = injectionMode;
   }
@@ -251,7 +274,7 @@ void loop() {
   }
   else {
 #ifdef SERIAL_DEBUG
-    Serial.println("fail");
+//    Serial.println("fail");
 #endif
   }
 }

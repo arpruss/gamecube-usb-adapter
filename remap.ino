@@ -1,5 +1,7 @@
 #include "gamecube.h"
 
+#ifndef SERIAL_DEBUG
+
 uint8_t prevButtons[numberOfButtons];
 uint8_t curButtons[numberOfButtons];
 GameCubeData_t oldData;
@@ -129,3 +131,4 @@ void inject(const Injector_t* injector, const GameCubeData_t* curDataP) {
     Joystick.sendManualReport();
 }
 
+#endif
