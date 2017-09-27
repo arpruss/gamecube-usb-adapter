@@ -99,10 +99,12 @@ void setup() {
 #endif
   pinMode(ledPinID, OUTPUT);
 
-  EEPROM254_init();
-  injectionMode = EEPROM254_getValue();
-  if (injectionMode == 0xFF)
+  EEPROM8_init();
+  int i = EEPROM8_getValue(EEPROM_VARIABLE_INJECTION_MODE);
+  if (i < 0)
     injectionMode = 0;
+  else
+    injectionMode = i; 
 
   if (injectionMode > numInjectionModes)
     injectionMode = 0;
@@ -217,7 +219,7 @@ void loop() {
   if ((millis()-t0)>=5000) {
     displayNumber(0xF);
     injectionMode = 0;
-    EEPROM254_reset();
+    EEPROM8_reset();
     updateDisplay();
     savedInjectionMode = 0;
   }
@@ -248,7 +250,7 @@ void loop() {
 #ifdef SERIAL_DEBUG
     Serial.println("Need to store");
 #endif
-    EEPROM254_storeValue(injectionMode);
+    EEPROM8_storeValue(EEPROM_VARIABLE_INJECTION_MODE, injectionMode);
     savedInjectionMode = injectionMode;
   }
 

@@ -3,6 +3,8 @@
 
 //#define SERIAL_DEBUG
 
+#define EEPROM_VARIABLE_INJECTION_MODE 0
+
 uint8_t loadInjectionMode(void);
 void saveInjectionMode(uint8_t mode);
 
