@@ -36,12 +36,16 @@ void toButtonArray(uint8_t* buttons, const GameCubeData_t* data) {
   buttonizeStick(buttons, data->cX, data->cY); 
 }
 
+inline uint16_t remapRange(uint8_t x) {
+  return (((uint16_t)x) << 2)+1;
+}
+
 void joystickBasic(const GameCubeData_t* data) {
     didJoystick = true;
-    Joystick.X(data->joystickX);
-    Joystick.Y(255-data->joystickY);
-    Joystick.Z(data->cX);
-    Joystick.Zrotate(data->cY);
+    Joystick.X(remapRange(data->joystickX));
+    Joystick.Y(remapRange(255-data->joystickY));
+    Joystick.Z(remapRange(data->cX));
+    Joystick.Zrotate(remapRange(data->cY));
 }
 
 void joystickPOV(const GameCubeData_t* data) {
@@ -79,15 +83,16 @@ void joystickPOV(const GameCubeData_t* data) {
 void joystickDualShoulder(const GameCubeData_t* data) {
     joystickBasic(data);
     joystickPOV(data);
-    Joystick.sliderLeft(2*data->shoulderLeft);
-    Joystick.sliderRight(2*data->shoulderRight);    
+    Joystick.sliderLeft(remapRange(data->shoulderLeft));
+    Joystick.sliderRight(remapRange(data->shoulderRight));
 }
 
 void joystickUnifiedShoulder(const GameCubeData_t* data) {
     joystickBasic(data);
     joystickPOV(data);
-    //Joystick.sliderLeft(0);
-    Joystick.sliderRight(255+data->shoulderRight-data->shoulderLeft);
+    uint16_t datum = 512+(data->shoulderRight-(int16_t)data->shoulderLeft)*2;
+    Joystick.sliderLeft(datum);
+    Joystick.sliderRight(datum);
 }
 
 void joystickNoShoulder(const GameCubeData_t* data) {
