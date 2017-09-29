@@ -1,5 +1,6 @@
 use <roundedsquare.scad>;
 
+//<params>
 includeBottom = 1; // [1:yes, 0:no]
 includeTop = 1; // [1:yes, 0:no]
 innerLength = 80;
@@ -36,6 +37,7 @@ ledSpacing = 5.08;
 pcbToPCBSpacing = 12;
 usbPortWidth = 10;
 usbPortHeight = 4.5;
+//</params>
 
 module dummy() {}
 
