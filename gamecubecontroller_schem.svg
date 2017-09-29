@@ -17,7 +17,10 @@
    viewBox="0 0 341.16 203.7"
    id="svg1229"
    sodipodi:docname="gamecubecontroller_schem.svg"
-   inkscape:version="0.92.1 r15371">
+   inkscape:version="0.92.1 r15371"
+   inkscape:export-filename="C:\Users\alexander_pruss\Documents\Arduino\gamecubecontroller\gamecubecontroller_schem.png"
+   inkscape:export-xdpi="241.89"
+   inkscape:export-ydpi="241.89">
   <metadata
      id="metadata1235">
     <rdf:RDF>
@@ -45,13 +48,20 @@
      id="namedview1231"
      showgrid="false"
      inkscape:snap-global="false"
-     inkscape:zoom="1.3190274"
-     inkscape:cx="227.44032"
-     inkscape:cy="192.94213"
+     inkscape:zoom="0.93269322"
+     inkscape:cx="260.12894"
+     inkscape:cy="-102.05731"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
      inkscape:current-layer="svg1229" />
+  <rect
+     style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.74999905;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     id="rect1320"
+     width="466.39069"
+     height="270.18497"
+     x="-46.639069"
+     y="-27.887129" />
   <rect
      style="fill:none;stroke:#000000;stroke-width:0.90000612;stroke-linecap:round;stroke-linejoin:round"
      id="rect4"
