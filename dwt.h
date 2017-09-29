@@ -1,3 +1,5 @@
+// ...header taken from stuff floating around the net...
+
 #ifndef DWT_BASE
 
 #define SystemCoreClock 72000000ul
