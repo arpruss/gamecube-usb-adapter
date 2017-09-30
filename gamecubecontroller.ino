@@ -36,6 +36,8 @@
 const uint32_t watchdogSeconds = 10;
 const uint32_t numInjectionModes = sizeof(injectors)/sizeof(*injectors);
 
+const uint8_t ledBrightnessLevels[] = {50,50,50,50}; 
+//const uint8_t ledBrightnessLevels[] = { 50, 25, 25, 150 }; // my PA3 LED is dimmer for some reason
 const uint32_t indicatorLEDs[] = { PA0, PA1, PA2, PA3 };
 const int numIndicators = sizeof(indicatorLEDs)/sizeof(*indicatorLEDs);
 const uint32_t downButton = PA4;
@@ -70,7 +72,7 @@ Debounce debounceUp(upButton, HIGH);
 
 void displayNumber(uint8_t x) {
   for (int i=0; i<numIndicators; i++, x>>=1) 
-    digitalWrite(indicatorLEDs[i], 1^(x&1));
+    analogWrite(indicatorLEDs[i], (x&1) ? (255-ledBrightnessLevels[i]) : 255);
 }
 
 void updateDisplay() {
@@ -89,6 +91,10 @@ void setup() {
   pinMode(upButton, INPUT_PULLDOWN);
   debounceDown.begin();
   debounceUp.begin();
+
+  nvic_globalirq_disable();
+  displayNumber(0xF);
+  delay(3000);
   
 #ifdef SERIAL_DEBUG
   Serial.begin(115200);
@@ -191,6 +197,7 @@ uint8_t gameCubeReceiveReport(GameCubeData_t* data, uint8_t rumble) {
   gameCubeSendBits(rumble ? 0b0100000000000011000000011l : 0b0100000000000011000000001l, 25); 
   uint8_t success = gameCubeReceiveBits(data, 64);
   nvic_globalirq_enable();
+  
   if (success && 0 == (data->buttons & 0x80) && (data->buttons & 0x8000) ) {
     gpio_write_bit(ledPort, ledPin, 0);
     return 1;
