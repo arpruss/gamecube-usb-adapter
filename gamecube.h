@@ -2,11 +2,13 @@
 #define _GAMECUBE_H
 
 //#define SERIAL_DEBUG
+#define ENABLE_GAMECUBE
+//#define ENABLE_NUNCHUCK
 
 #define EEPROM_VARIABLE_INJECTION_MODE 0
-
-uint8_t loadInjectionMode(void);
-void saveInjectionMode(uint8_t mode);
+#define DEVICE_NONE     0
+#define DEVICE_GAMECUBE 1
+#define DEVICE_NUNCHUCK 2
 
 typedef struct {
   uint16_t buttons;
@@ -17,6 +19,49 @@ typedef struct {
   uint8_t shoulderLeft;
   uint8_t shoulderRight;
 } GameCubeData_t;
+
+
+void nunchuckInit(void);
+uint8_t nunchuckReceiveReport(GameCubeData_t* data);
+
+void gameCubeInit(void);
+void gameCubeSendBits(uint32_t data, uint8_t bits);
+uint8_t gameCubeReceiveBits(void* data0, uint32_t bits);
+uint8_t gameCubeReceiveReport(GameCubeData_t* data, uint8_t rumble);
+uint8_t gameCubeReceiveReport(GameCubeData_t* data);
+
+uint8_t loadInjectionMode(void);
+void saveInjectionMode(uint8_t mode);
+
+uint8_t validDevice = DEVICE_NONE;
+
+const uint32_t watchdogSeconds = 10;
+
+// SCL = PB6
+// SDA = PB7
+
+const uint32_t indicatorLEDs[] = { PA0, PA1, PA2, PA3 };
+const int numIndicators = sizeof(indicatorLEDs)/sizeof(*indicatorLEDs);
+const uint32_t downButton = PA4;
+const uint32_t upButton = PA5;
+const uint32_t rotationDetector = PA7;
+
+gpio_dev* const ledPort = GPIOB;
+const uint8_t ledPin = 12;
+const uint8_t ledPinID = PB12;
+
+const uint32_t saveInjectionModeAfterMillis = 15000ul; // only save a mode if it's been used 15 seconds; this saves flash
+
+const uint32_t gcPinID = PA6;
+const uint8_t gcPin = 6;
+gpio_dev* const gcPort = GPIOA;
+
+uint32_t injectionMode = 0;
+uint32_t savedInjectionMode = 0;
+uint32_t lastChangedModeTime;
+
+//volatile uint32 *gcPortPtr;
+//uint32_t gcPinBitmap;
 
 const uint16_t maskA = 0x01;
 const uint16_t maskB = 0x02;
@@ -77,6 +122,7 @@ void joystickNoShoulder(const GameCubeData_t* data);
 void joystickDualShoulder(const GameCubeData_t* data);
 void joystickUnifiedShoulder(const GameCubeData_t* data);
 
+// note: Nunchuck Z maps to A, Nunchuck C maps to B
 const InjectedButton_t defaultJoystickButtons[numberOfButtons] = {
     { JOY, {.button = 1} },           // A
     { JOY, {.button = 2} },           // B
@@ -238,6 +284,8 @@ const Injector_t injectors[] = {
 #else // SERIAL_DEBUG
 const Injector_t injectors[] = { {NULL,NULL},{NULL,NULL},{NULL,NULL},{NULL,NULL},{NULL,NULL},{NULL,NULL},{NULL,NULL},{NULL,NULL} };
 #endif
+
+const uint32_t numInjectionModes = sizeof(injectors)/sizeof(*injectors);
 
 #endif // _GAMECUBE_H
 

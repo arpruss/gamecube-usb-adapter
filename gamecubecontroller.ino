@@ -29,46 +29,12 @@
 #include <libmaple/iwdg.h>
 #include <libmaple/usb_cdcacm.h>
 #include <libmaple/usb.h>
-#include "dwt.h"
 #include "debounce.h"
 #include "gamecube.h"
 
-const uint32_t watchdogSeconds = 10;
-const uint32_t numInjectionModes = sizeof(injectors)/sizeof(*injectors);
-
-const uint8_t ledBrightnessLevels[] = {50,50,50,50}; 
-//const uint8_t ledBrightnessLevels[] = { 50, 25, 25, 150 }; // my PA3 LED is dimmer for some reason
-const uint32_t indicatorLEDs[] = { PA0, PA1, PA2, PA3 };
-const int numIndicators = sizeof(indicatorLEDs)/sizeof(*indicatorLEDs);
-const uint32_t downButton = PA4;
-const uint32_t upButton = PA5;
-
-gpio_dev* const ledPort = GPIOB;
-const uint8_t ledPin = 12;
-const uint8_t ledPinID = PB12;
-
-const uint32_t saveInjectionModeAfterMillis = 15000ul; // only save a mode if it's been used 15 seconds; this saves flash
-
-const uint32_t gcPinID = PA6;
-const uint8_t gcPin = 6;
-gpio_dev* const gcPort = GPIOA;
-
-const uint32_t cyclesPerUS = (SystemCoreClock/1000000ul);
-const uint32_t quarterBitSendingCycles = cyclesPerUS*5/4;
-const uint32_t bitReceiveCycles = cyclesPerUS*4;
-const uint32_t halfBitReceiveCycles = cyclesPerUS*2;
-
-uint32_t injectionMode = 0;
-uint32_t savedInjectionMode = 0;
-uint32_t lastChangedModeTime;
-
-volatile uint32 *gcPortPtr;
-uint32_t gcPinBitmap;
-
-const uint8_t maxFails = 4;
-uint8_t fails;
 Debounce debounceDown(downButton, HIGH);
 Debounce debounceUp(upButton, HIGH);
+Debounce debounceRotation(rotationDetector, LOW);
 
 void displayNumber(uint8_t x) {
   for (int i=0; i<numIndicators; i++, x>>=1) 
@@ -80,15 +46,19 @@ void updateDisplay() {
 }
 
 void setup() {
-  gcPortPtr = portOutputRegister(digitalPinToPort(PA9));
-  gcPinBitmap = digitalPinToBitMask(PA9);
-  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
-  DWT->CTRL |= 1;
-  fails = maxFails; // force update
   for (int i=0; i<numIndicators; i++)
     pinMode(indicatorLEDs[i], OUTPUT);
   pinMode(downButton, INPUT_PULLDOWN);
   pinMode(upButton, INPUT_PULLDOWN);
+  pinMode(rotationDetector, INPUT_PULLUP);
+
+#ifdef ENABLE_GAMECUBE
+  gameCubeInit();
+#endif
+#ifdef ENABLE_NUNCHUCK
+  nunchuckInit();
+#endif
+
   debounceDown.begin();
   debounceUp.begin();
 
@@ -123,94 +93,31 @@ void setup() {
   iwdg_init(IWDG_PRE_256, watchdogSeconds*156);
 }
 
-// at most 32 bits can be sent
-void gameCubeSendBits(uint32_t data, uint8_t bits) {
-  //pinMode(gcPinID, OUTPUT);
-  gpio_set_mode(gcPort, gcPin, GPIO_OUTPUT_PP);
-  data <<= 32-bits;
-  DWT->CYCCNT = 0;
-  uint32_t timerEnd = DWT->CYCCNT;
-  do {
-    gpio_write_bit(gcPort, gcPin, 0);
-    if (0x80000000ul & data) 
-      timerEnd += quarterBitSendingCycles;
-    else
-      timerEnd += 3*quarterBitSendingCycles;    
-    while(DWT->CYCCNT < timerEnd) ;
-    gpio_write_bit(gcPort, gcPin, 1);
-    if (0x80000000ul & data) 
-      timerEnd += 3*quarterBitSendingCycles;
-    else
-      timerEnd += quarterBitSendingCycles;    
-    data <<= 1;
-    bits--;
-    while(DWT->CYCCNT < timerEnd) ;
-  } while(bits);
-}
-
-// bits must be greater than 0
-uint8_t gameCubeReceiveBits(void* data0, uint32_t bits) {
-  uint8_t* data = (uint8_t*)data0;
-  
-  uint32_t timeout = bitReceiveCycles * bits / 2 + 4;
-  
-  uint8_t bitmap = 0x80;
-
-//  pinMode(gcPinID, INPUT);
-  gpio_set_mode(gcPort, gcPin, GPIO_INPUT_FLOATING);
-
-  *data = 0;
-  do {
-    if (!gpio_read_bit(gcPort, gcPin)) {
-      DWT->CYCCNT = 0;
-      while(DWT->CYCCNT < halfBitReceiveCycles-2) ;
-      if (gpio_read_bit(gcPort, gcPin)) {
-        *data |= bitmap;
-      }
-      bitmap >>= 1;
-      bits--;
-      if (bitmap == 0) {
-        data++;
-        bitmap = 0x80;
-        if (bits) 
-          *data = 0;
-      }
-      while(!gpio_read_bit(gcPort, gcPin) && --timeout) ;
-      if (timeout==0) {
-        break;
-      }
+uint8_t receiveReport(GameCubeData_t* data) {
+  uint8_t success;
+#ifdef ENABLE_GAMECUBE  
+  if (validDevice == DEVICE_GAMECUBE || validDevice == DEVICE_NONE) {
+    success = gameCubeReceiveReport(data);
+    if (success) {
+      validDevice = DEVICE_GAMECUBE;
+      gpio_write_bit(ledPort, ledPin, 0);
+      return 1;
     }
-  } while(--timeout && bits);
-
-  return bits==0;
-}
-
-uint8_t gameCubeReceiveReport(GameCubeData_t* data, uint8_t rumble) {
-  if (fails >= maxFails) {
-    nvic_globalirq_disable();
-    gameCubeSendBits(0b000000001l, 9);
-    nvic_globalirq_enable();
-    delayMicroseconds(400);
-    fails = 0;
-  }              
-  nvic_globalirq_disable();
-  gameCubeSendBits(rumble ? 0b0100000000000011000000011l : 0b0100000000000011000000001l, 25); 
-  uint8_t success = gameCubeReceiveBits(data, 64);
-  nvic_globalirq_enable();
-  
-  if (success && 0 == (data->buttons & 0x80) && (data->buttons & 0x8000) ) {
+    validDevice = DEVICE_NONE;
+  }
+#endif
+#ifdef ENABLE_NUNCHUCK
+  if (validDevice != DEVICE_NUNCHUCK) 
+    nunchuckDeviceInit();
+  success = nunchuckReceiveReport(data);
+  if (success) {
+    validDevice = DEVICE_NUNCHUCK;
     gpio_write_bit(ledPort, ledPin, 0);
     return 1;
   }
-  else {
-    gpio_write_bit(ledPort, ledPin, 1);
-    fails++;
-    return 0;
-  }
-}
-
-uint8_t gameCubeReceiveReport(GameCubeData_t* data) {
-  return gameCubeReceiveReport(data, 0);
+#endif
+  validDevice = DEVICE_NONE;
+  gpio_write_bit(ledPort, ledPin, 1);
 }
 
 void loop() {
@@ -270,7 +177,7 @@ void loop() {
     // if a disconnection happens at the wrong time
 #endif
 
-  if (gameCubeReceiveReport(&data, 0)) {
+  if (receiveReport(&data)) {
 #ifdef SERIAL_DEBUG
     Serial.println("buttons1 = "+String(data.buttons));  
     Serial.println("joystick = "+String(data.joystickX)+","+String(data.joystickY));  
