@@ -39,6 +39,7 @@ Debounce debounceRotation(rotationDetector, LOW);
 void displayNumber(uint8_t x) {
   for (int i=0; i<numIndicators; i++, x>>=1) 
     analogWrite(indicatorLEDs[i], (x&1) ? (255-ledBrightnessLevels[i]) : 255);
+    //digitalWrite(indicatorLEDs[i], !(x&1));
 }
 
 void updateDisplay() {
@@ -62,10 +63,6 @@ void setup() {
   debounceDown.begin();
   debounceUp.begin();
 
-  nvic_globalirq_disable();
-  displayNumber(0xF);
-  delay(3000);
-  
 #ifdef SERIAL_DEBUG
   Serial.begin(115200);
   delay(2000);
