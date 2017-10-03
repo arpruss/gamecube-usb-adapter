@@ -1,13 +1,13 @@
 use <roundedsquare.scad>;
 
 //<params>
-includeBottom = 1; // [1:yes, 0:no]
+includeBottom = 0; // [1:yes, 0:no]
 includeTop = 1; // [1:yes, 0:no]
 includeGamecubePort = 1; // [1:yes, 0:no]
-includeEllipticalPort = 0; // [1:yes, 0:no]
-includeNunchuckPort = 0; // [1:yes, 0:no]
+includeEllipticalPort = 1; // [1:yes, 0:no]
+includeNunchuckPort = 1; // [1:yes, 0:no]
 // TODO:
-includeSwitchPort = 0; // [1:yes, 0:no]
+includeDirectionSwitchPort = 1; // [1:yes, 0:no]
 innerLength = 80;
 extraWidth = 15;
 sideWall = 1.5;
@@ -34,7 +34,7 @@ ellipticalCableMinorDiameter=2.66;
 topOffset = 4.8;
 topScrewX1 = 6;
 topScrewXSpacing = 54.66;
-buttonHoleDiameter = 4.9;
+buttonHoleDiameter = 5;
 button1OffsetFromHole = 12.7;
 button2OffsetFromHole = 5.78;
 ledHoleDiameter = 4;
@@ -44,12 +44,15 @@ ledSpacing = 5.08;
 pcbToPCBSpacing = 12;
 usbPortWidth = 10;
 usbPortHeight = 4.5;
-nunchuckPortTolerance = 0.3;
+directionSwitchNeckDiameter = 5.8;
+directionSwitchOuterDiameter = 11.12;
+directionSwitchNeck = 1.1;
+nunchuckPortTolerance = 0.25;
 nunchuckPortHeight = 7.36;
 nunchuckPortWidth = 12.24;
 nunchuckPortInsetDepth = 1.28;
 nunchuckPortInsetWidth = 4.59;
-nunchuckPortPillarTopFromCenter = 4.8;
+nunchuckPortPillarTopFromCenter = 4.9;
 nunchuckPortZOffset = 2;
 nunchuckScrewHoleYMinusFromCenterOfPort = 6.99;
 nunchuckScrewHoleXMinusFromOutsideOfWall = 12.91;
@@ -100,6 +103,9 @@ bottomThinPillarLocations = [
     [stm32ScrewX1,stm32ScrewY1+stm32ScrewYSpacing,0],
     [stm32ScrewX1+stm32ScrewXSpacing,stm32ScrewY1+stm32ScrewYSpacing,0] ];
 
+directionSwitchX = (topScrewX1+button1OffsetFromHole+topScrewX1+topScrewXSpacing-button2OffsetFromHole)/2;
+directionSwitchY = topScrewY/2;
+
 module base(inset=0) {
     translate([-sideWall+inset,-sideWall+inset])
     roundedSquare([innerLength+2*sideWall-2*inset,innerWidth+2*sideWall-2*inset], radius=fatPillarDiameter/2-inset);
@@ -128,8 +134,8 @@ module nunchuckConnector() {
     insetDepth = nunchuckPortInsetDepth;
     insetWidth = nunchuckPortInsetWidth+2*nunchuckPortTolerance;
     rotate([0,90,0])
-    translate([0,0,-nudge])
-    linear_extrude(height=sideWall+2*nudge)
+    translate([0,0,-sideWall-nudge])
+    linear_extrude(height=sideWall*2+2*nudge)
     polygon([[-h/2,-w/2],[h/2,-w/2],[h/2,w/2],[-h/2,w/2],[-h/2,insetWidth/2],[-h/2+insetDepth,insetWidth/2],[-h/2+insetDepth,-insetWidth/2],[-h/2,-insetWidth/2]]);
 }
 
@@ -183,6 +189,9 @@ module bottom() {
                 translate(p) thinPillar(height=nunchuckPillarLength);
        if (includeGamecubePort) 
             translate([innerLength-2*sideWall,gcPortY-gcCableDiameter*1.5,0]) cube([2*sideWall+nudge,3*gcCableDiameter,bottomHeight]);
+       if (includeNunchuckPort) 
+            translate([innerLength-sideWall,nunchuckPortY-nunchuckPortWidth/2-2*sideWall,0])
+       cube([2*sideWall,nunchuckPortWidth+4*sideWall,bottomHeight]);
        if (includeEllipticalPort) 
             translate([-nudge,ellipticalCableY-ellipticalCableMinorDiameter*1.5,0]) cube([2*sideWall+nudge,3*ellipticalCableMinorDiameter,bottomHeight]);
         }
@@ -215,6 +224,9 @@ module top() {
                 thinPillar(height=topWall+topOffset);
             translate([topScrewX1+topScrewXSpacing,topScrewY,0])
                 thinPillar(height=topWall+topOffset);
+       if (includeNunchuckPort) 
+            translate([innerLength-sideWall,innerWidth-nunchuckPortY-nunchuckPortWidth/2-2*sideWall,0])
+       cube([2*sideWall,nunchuckPortWidth+4*sideWall,topHeight]);
        if (includeGamecubePort) 
             translate([innerLength-2*sideWall,innerWidth-gcPortY-gcCableDiameter*1.5,0]) cube([2*sideWall+nudge,3*gcCableDiameter,topHeight]);
        if (includeEllipticalPort) 
@@ -239,6 +251,11 @@ module top() {
         translate([topScrewX1+button1OffsetFromHole,topScrewY,-nudge]) cylinder(d=buttonHoleDiameter,h=topWall+2*nudge);
         translate([topScrewX1+topScrewXSpacing-button2OffsetFromHole,topScrewY,-nudge]) cylinder(d=buttonHoleDiameter,h=topWall+2*nudge);
         for(i=[0:3]) translate([topScrewX1+button1OffsetFromHole+led1XOffsetFromButton1+i*ledSpacing,topScrewY+led1YOffsetFromButton1,-nudge]) cylinder(d=ledHoleDiameter,h=topWall+2*nudge);
+    if (includeDirectionSwitchPort)
+    translate([directionSwitchX,directionSwitchY,-nudge]) { cylinder(d=directionSwitchNeckDiameter+4*tolerance,h=topWall+2*nudge);
+     translate([0,0,directionSwitchNeck])
+    cylinder(d=directionSwitchOuterDiameter+4*tolerance,h=topWall);
+     }
     }
 }
 

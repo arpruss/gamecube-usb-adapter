@@ -4,6 +4,7 @@
 //#define SERIAL_DEBUG
 #define ENABLE_GAMECUBE
 //#define ENABLE_NUNCHUCK
+//#define ENABLE_ELLIPTICAL
 
 #define EEPROM_VARIABLE_INJECTION_MODE 0
 #define DEVICE_NONE     0
@@ -20,6 +21,8 @@ typedef struct {
   uint8_t shoulderRight;
 } GameCubeData_t;
 
+void ellipticalUpdate(void);
+void ellipticalInit(void);
 
 void nunchuckInit(void);
 uint8_t nunchuckReceiveReport(GameCubeData_t* data);
@@ -32,6 +35,9 @@ uint8_t gameCubeReceiveReport(GameCubeData_t* data);
 
 uint8_t loadInjectionMode(void);
 void saveInjectionMode(uint8_t mode);
+
+int16_t ellipticalSpeed;
+uint8_t ellipticalDirection;
 
 uint8_t validDevice = DEVICE_NONE;
 
@@ -47,6 +53,7 @@ const int numIndicators = sizeof(indicatorLEDs)/sizeof(*indicatorLEDs);
 const uint32_t downButton = PA4;
 const uint32_t upButton = PA5;
 const uint32_t rotationDetector = PA7;
+const uint32_t directionSwitch = PA8;
 
 gpio_dev* const ledPort = GPIOB;
 const uint8_t ledPin = 12;

@@ -1,3 +1,4 @@
+
 // gamecube controller adapter
 // This requires this branch of the Arduino STM32 board: 
 //    https://github.com/arpruss/Arduino_STM32/tree/addMidiHID
@@ -34,7 +35,6 @@
 
 Debounce debounceDown(downButton, HIGH);
 Debounce debounceUp(upButton, HIGH);
-Debounce debounceRotation(rotationDetector, LOW);
 
 void displayNumber(uint8_t x) {
   for (int i=0; i<numIndicators; i++, x>>=1) 
@@ -51,7 +51,8 @@ void setup() {
     pinMode(indicatorLEDs[i], OUTPUT);
   pinMode(downButton, INPUT_PULLDOWN);
   pinMode(upButton, INPUT_PULLDOWN);
-  pinMode(rotationDetector, INPUT_PULLUP);
+  
+  ellipticalInit();
 
 #ifdef ENABLE_GAMECUBE
   gameCubeInit();
@@ -137,6 +138,8 @@ void loop() {
   else {
     t0 = millis();
     do {
+      ellipticalUpdate();
+      
       if (debounceDown.wasPressed()) {
         if (injectionMode == 0)
           injectionMode = numInjectionModes-1;

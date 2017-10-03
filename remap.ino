@@ -80,17 +80,35 @@ void joystickPOV(const GameCubeData_t* data) {
     Joystick.hat(dir);
 }
 
+uint16 getEllipticalSpeed() {
+  return 512+(ellipticalDirection?ellipticalSpeed:-ellipticalSpeed);  
+}
+
 void joystickDualShoulder(const GameCubeData_t* data) {
     joystickBasic(data);
     joystickPOV(data);
-    Joystick.sliderLeft(remapRange(data->shoulderLeft));
-    Joystick.sliderRight(remapRange(data->shoulderRight));
+    if (validDevice == DEVICE_GAMECUBE) {
+      Joystick.sliderLeft(remapRange(data->shoulderLeft));
+      Joystick.sliderRight(remapRange(data->shoulderRight));
+    }
+    else {
+      uint16_t s = getEllipticalSpeed();
+      Joystick.sliderLeft(s);
+      Joystick.sliderRight(s);
+    }
 }
 
 void joystickUnifiedShoulder(const GameCubeData_t* data) {
     joystickBasic(data);
     joystickPOV(data);
-    uint16_t datum = 512+(data->shoulderRight-(int16_t)data->shoulderLeft)*2;
+    
+    uint16_t datum;
+    if (validDevice == DEVICE_GAMECUBE) {
+      datum = 512+(data->shoulderRight-(int16_t)data->shoulderLeft)*2;
+    }
+    else {
+      datum = getEllipticalSpeed();
+    }
     Joystick.sliderLeft(datum);
     Joystick.sliderRight(datum);
 }
