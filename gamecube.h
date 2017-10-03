@@ -41,7 +41,7 @@ uint8_t ellipticalDirection;
 
 uint8_t validDevice = DEVICE_NONE;
 
-const uint32_t watchdogSeconds = 12; //10;
+const uint32_t watchdogSeconds = 10;
 
 #define MY_SCL PB6
 #define MY_SDA PB7

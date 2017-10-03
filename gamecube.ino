@@ -18,7 +18,7 @@ void gameCubeInit(void) {
 // at most 32 bits can be sent
 void gameCubeSendBits(uint32_t data, uint8_t bits) {
   //pinMode(gcPinID, OUTPUT);
-  gpio_set_mode(gcPort, gcPin, GPIO_OUTPUT_PP);
+  gpio_set_mode(gcPort, gcPin, GPIO_OUTPUT_OD);
   data <<= 32-bits;
   DWT->CYCCNT = 0;
   uint32_t timerEnd = DWT->CYCCNT;
@@ -48,8 +48,7 @@ uint8_t gameCubeReceiveBits(void* data0, uint32_t bits) {
   
   uint8_t bitmap = 0x80;
 
-//  pinMode(gcPinID, INPUT);
-  gpio_set_mode(gcPort, gcPin, GPIO_INPUT_FLOATING);
+  //gpio_set_mode(gcPort, gcPin, GPIO_INPUT_FLOATING);
 
   *data = 0;
   do {

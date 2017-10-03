@@ -1,7 +1,7 @@
 use <roundedsquare.scad>;
 
 //<params>
-includeBottom = 0; // [1:yes, 0:no]
+includeBottom = 1; // [1:yes, 0:no]
 includeTop = 1; // [1:yes, 0:no]
 includeGamecubePort = 1; // [1:yes, 0:no]
 includeEllipticalPort = 1; // [1:yes, 0:no]
@@ -16,7 +16,7 @@ bottomWall = 2;
 bottomScrewLength = 8;
 topScrewLength = 5.7;
 screwDiameter = 2.12;
-screwHeadDiameter = 4.11;
+screwHeadDiameter = 4.8;
 thinPillarDiameter = 5.5;
 fatPillarDiameter = 9;
 stm32Width = 24.35;
@@ -44,6 +44,7 @@ ledSpacing = 5.08;
 pcbToPCBSpacing = 12;
 usbPortWidth = 10;
 usbPortHeight = 4.5;
+usbPortZOffsetDown = 1;
 directionSwitchNeckDiameter = 5.8;
 directionSwitchOuterDiameter = 11.12;
 directionSwitchNeck = 1.1;
@@ -205,6 +206,7 @@ module bottom() {
             translate([0,0,bottomWall]) translate(p) thinPillar(hole=true,height=bottomHeight+nudge);
        if (includeNunchuckPort)
            translate([innerLength,nunchuckPortY,bottomHeight+nunchuckPortZOffset]) nunchuckConnector();
+        translate([-sideWall-nudge,(stm32ScrewY1+stm32ScrewYSpacing/2)-usbPortWidth/2,bottomHeight-usbPortZOffsetDown]) cube([sideWall+2*nudge,usbPortWidth,usbPortHeight+nudge]);
        if (includeGamecubePort) 
        translate([innerLength-2*sideWall,gcPortY,bottomHeight]) rotate([0,90,0]) cylinder(d=gcCableDiameter,h=3*sideWall+2*nudge);
        if (includeEllipticalPort)
@@ -246,7 +248,7 @@ module top() {
        translate([innerLength-2*sideWall,innerWidth-gcPortY,topHeight]) rotate([0,90,0]) cylinder(d=gcCableDiameter,h=3*sideWall+2*nudge);
        if (includeEllipticalPort)
         translate([0,innerWidth-ellipticalCableY,topHeight]) ellipticalCable();
-        translate([-sideWall-nudge,y0-usbPortWidth/2,topHeight-usbPortHeight]) cube([sideWall+2*nudge,usbPortWidth,usbPortHeight+nudge]);
+        translate([-sideWall-nudge,y0-usbPortWidth/2,topHeight-usbPortHeight+usbPortZOffsetDown]) cube([sideWall+2*nudge,usbPortWidth,usbPortHeight+nudge]);
         translate([-sideWall*0.25-tolerance,y0-(stm32Width+2*tolerance)/2,topHeight-pcbThickness-tolerance]) cube([sideWall*0.25+tolerance+nudge,stm32Width+2*tolerance,pcbThickness+tolerance+nudge]);
         translate([topScrewX1+button1OffsetFromHole,topScrewY,-nudge]) cylinder(d=buttonHoleDiameter,h=topWall+2*nudge);
         translate([topScrewX1+topScrewXSpacing-button2OffsetFromHole,topScrewY,-nudge]) cylinder(d=buttonHoleDiameter,h=topWall+2*nudge);
