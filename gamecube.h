@@ -41,10 +41,10 @@ uint8_t ellipticalDirection;
 
 uint8_t validDevice = DEVICE_NONE;
 
-const uint32_t watchdogSeconds = 10;
+const uint32_t watchdogSeconds = 12; //10;
 
-// SCL = PB6
-// SDA = PB7
+#define MY_SCL PB6
+#define MY_SDA PB7
 
 const uint32_t indicatorLEDs[] = { PA0, PA1, PA2, PA3 };
 const uint8_t ledBrightnessLevels[] = {50,50,50,50}; 

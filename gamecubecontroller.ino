@@ -66,7 +66,7 @@ void setup() {
 
 #ifdef SERIAL_DEBUG
   Serial.begin(115200);
-  delay(2000);
+  delay(4000);
   Serial.println("gamecube controller adapter");
 #else
   Joystick.setManualReportMode(true);
@@ -105,13 +105,13 @@ uint8_t receiveReport(GameCubeData_t* data) {
   }
 #endif
 #ifdef ENABLE_NUNCHUCK
-  if (validDevice != DEVICE_NUNCHUCK) 
-    nunchuckDeviceInit();
-  success = nunchuckReceiveReport(data);
-  if (success) {
-    validDevice = DEVICE_NUNCHUCK;
-    gpio_write_bit(ledPort, ledPin, 0);
-    return 1;
+  if (validDevice == DEVICE_NUNCHUCK || nunchuckDeviceInit()) {
+    success = nunchuckReceiveReport(data);
+    if (success) {
+      validDevice = DEVICE_NUNCHUCK;
+      gpio_write_bit(ledPort, ledPin, 0);
+      return 1;
+    }
   }
 #endif
   validDevice = DEVICE_NONE;
