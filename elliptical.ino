@@ -9,7 +9,7 @@ uint32_t newRotationPulseTime = 0;
 uint32_t lastPulse = 0;
 
 Debounce debounceRotation(rotationDetector, LOW);
-Debounce debounceDirection(directionSwitch, HIGH);
+Debounce debounceDirection(directionSwitch, DIRECTION_SWITCH_FORWARD);
 
 uint8_t ellipticalRotationDetector;
 
@@ -19,14 +19,11 @@ void ellipticalInit() {
   pinMode(directionSwitch, INPUT_PULLDOWN);
 #endif
   ellipticalSpeed = 512;
-  ellipticalDirection = 1;
   ellipticalRotationDetector = debounceRotation.getState();
 }
 
-void ellipticalUpdate() {
+void ellipticalUpdate(EllipticalData_t* data) {
 #ifdef ENABLE_ELLIPTICAL
-  ellipticalDirection = debounceDirection.getState();
-
   uint32_t dt = millis() - lastPulse;
 
   if (dt > longestReasonableRotationTime)
@@ -34,6 +31,9 @@ void ellipticalUpdate() {
 
   if (debounceRotation.wasToggled()) {
     ellipticalRotationDetector = ! ellipticalRotationDetector;
+#ifdef SERIAL_DEBUG
+    Serial.println("rot="+String(ellipticalRotationDetector));
+#endif    
     newRotationPulseTime = millis();
     if (ellipticalRotationDetector) {
       lastPulse = millis();
@@ -50,6 +50,15 @@ void ellipticalUpdate() {
       }
     }
   }  
+  data->speed = ellipticalSpeed;
+  data->direction = debounceDirection.getState();
+#ifdef SERIAL_DEBUG
+    Serial.println("speed="+String(data->speed));
+    Serial.println("dir="+String(data->direction));
+#endif    
+#else
+  data->speed = 0;
+  data->direction = 1;
 #endif
 }
 

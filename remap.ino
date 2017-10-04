@@ -80,22 +80,23 @@ void joystickPOV(const GameCubeData_t* data) {
     Joystick.hat(dir);
 }
 
-uint16 getEllipticalSpeed() {
-  return 512+(ellipticalDirection?ellipticalSpeed:-ellipticalSpeed);  
+uint16_t getEllipticalSpeed(const EllipticalData_t* ellipticalP) {
+  return 512+(ellipticalP->direction?(int16_t)ellipticalP->speed:-(int16_t)ellipticalP->speed);  
 }
 
 void joystickDualShoulder(const GameCubeData_t* data) {
     joystickBasic(data);
     joystickPOV(data);
-    if (validDevice == DEVICE_GAMECUBE) {
-      Joystick.sliderLeft(remapRange(data->shoulderLeft));
-      Joystick.sliderRight(remapRange(data->shoulderRight));
-    }
-    else {
-      uint16_t s = getEllipticalSpeed();
-      Joystick.sliderLeft(s);
-      Joystick.sliderRight(s);
-    }
+    Joystick.sliderLeft(remapRange(data->shoulderLeft));
+    Joystick.sliderRight(remapRange(data->shoulderRight));
+}
+
+void ellipticalSlidersIfNoGameCube(const EllipticalData_t* ellipticalP) {
+    if(validDevice == DEVICE_GAMECUBE)
+      return;
+    uint16_t datum = getEllipticalSpeed(ellipticalP);
+    Joystick.sliderLeft(datum);
+    Joystick.sliderRight(datum);
 }
 
 void joystickUnifiedShoulder(const GameCubeData_t* data) {
@@ -103,12 +104,7 @@ void joystickUnifiedShoulder(const GameCubeData_t* data) {
     joystickPOV(data);
     
     uint16_t datum;
-    if (validDevice == DEVICE_GAMECUBE) {
-      datum = 512+(data->shoulderRight-(int16_t)data->shoulderLeft)*2;
-    }
-    else {
-      datum = getEllipticalSpeed();
-    }
+    datum = 512+(data->shoulderRight-(int16_t)data->shoulderLeft)*2;
     Joystick.sliderLeft(datum);
     Joystick.sliderRight(datum);
 }
@@ -118,7 +114,7 @@ void joystickNoShoulder(const GameCubeData_t* data) {
     joystickPOV(data);
 }
 
-void inject(const Injector_t* injector, const GameCubeData_t* curDataP) {
+void inject(const Injector_t* injector, const GameCubeData_t* curDataP, const EllipticalData_t* ellipticalP) {
   didJoystick = false;
 
   memcpy(prevButtons, curButtons, sizeof(curButtons));
@@ -150,8 +146,12 @@ void inject(const Injector_t* injector, const GameCubeData_t* curDataP) {
   if (injector->stick != NULL)
     injector->stick(curDataP);
 
+  if (injector->elliptical != NULL)
+    injector->elliptical(ellipticalP);
+
   if (didJoystick)
     Joystick.sendManualReport();
+
 }
 
 #endif

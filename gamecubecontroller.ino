@@ -10,19 +10,19 @@
 //    If on Windows, run drivers\win\install_drivers.bat
 // Note: You may need to adjust permissions on some of the dll, exe and bat files.
 
-// Facing Gamecube socket (as on console), flat on top:
+// Facing GameCube socket (as on console), flat on top:
 //    123
 //    ===
 //    456
 
 // Connections:
-// Gamecube 2--PA6
-// Gamecube 2--1Kohm--3.3V
-// Gamecube 3--GND
-// Gamecube 4--GND
-// Gamecube 6--3.3V
+// GameCube 2--PA6
+// GameCube 2--1Kohm--3.3V
+// GameCube 3--GND
+// GameCube 4--GND
+// GameCube 6--3.3V
 // Put a 10 uF and 0.1 uF capacitor between 3.3V and GND right on the black pill board.
-// optional: connect Gamecube 1--5V (rumble, make sure there is enough current)
+// optional: connect GameCube 1--5V (rumble, make sure there is enough current)
 
 // Put LEDs + resistors (100-220 ohm) between PA0,PA1,PA2,PA3 and 3.3V
 // Put momentary pushbuttons between PA4 (decrement),PA5 (increment) and 3.3V
@@ -120,6 +120,7 @@ uint8_t receiveReport(GameCubeData_t* data) {
 
 void loop() {
   GameCubeData_t data;
+  EllipticalData_t elliptical;
 
   iwdg_feed();
   
@@ -138,7 +139,7 @@ void loop() {
   else {
     t0 = millis();
     do {
-      ellipticalUpdate();
+      ellipticalUpdate(&elliptical);
       
       if (debounceDown.wasPressed()) {
         if (injectionMode == 0)
@@ -185,7 +186,7 @@ void loop() {
     Serial.println("shoulders = "+String(data.shoulderLeft)+","+String(data.shoulderRight));      
 #else 
     if (usb_is_connected(USBLIB) && usb_is_configured(USBLIB)) 
-      inject(injectors + injectionMode, &data);
+      inject(injectors + injectionMode, &data, &elliptical);
 #endif
   }
   else {

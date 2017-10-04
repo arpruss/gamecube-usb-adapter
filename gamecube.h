@@ -4,12 +4,14 @@
 //#define SERIAL_DEBUG
 #define ENABLE_GAMECUBE
 #define ENABLE_NUNCHUCK
-//#define ENABLE_ELLIPTICAL
+#define ENABLE_ELLIPTICAL
 
 #define EEPROM_VARIABLE_INJECTION_MODE 0
 #define DEVICE_NONE     0
 #define DEVICE_GAMECUBE 1
 #define DEVICE_NUNCHUCK 2
+
+#define DIRECTION_SWITCH_FORWARD LOW
 
 typedef struct {
   uint16_t buttons;
@@ -21,7 +23,12 @@ typedef struct {
   uint8_t shoulderRight;
 } GameCubeData_t;
 
-void ellipticalUpdate(void);
+typedef struct {
+  uint16_t speed;
+  uint8_t direction;
+} EllipticalData_t;
+
+void ellipticalUpdate(EllipticalData_t* data);
 void ellipticalInit(void);
 
 void nunchuckInit(void);
@@ -105,6 +112,7 @@ const int numberOfButtons = numberOfHardButtons+6;
 #define CLICK 'c'
 
 typedef void (*GameCubeDataProcessor_t)(const GameCubeData_t* data);
+typedef void (*EllipticalProcessor_t)(const EllipticalData_t* data);
 
 typedef struct {
   char mode;
@@ -123,6 +131,7 @@ typedef struct {
 typedef struct {
   InjectedButton_t const * buttons;
   GameCubeDataProcessor_t stick;
+  EllipticalProcessor_t elliptical;
 } Injector_t;
 
 #ifndef SERIAL_DEBUG
@@ -130,6 +139,7 @@ typedef struct {
 void joystickNoShoulder(const GameCubeData_t* data);
 void joystickDualShoulder(const GameCubeData_t* data);
 void joystickUnifiedShoulder(const GameCubeData_t* data);
+void ellipticalSlidersIfNoGameCube(const EllipticalData_t* ellipticalP);
 
 // note: Nunchuck Z maps to A, Nunchuck C maps to B
 const InjectedButton_t defaultJoystickButtons[numberOfButtons] = {
@@ -280,14 +290,14 @@ const InjectedButton_t dpadMC[numberOfButtons] = {
 };
 
 const Injector_t injectors[] = {
-  { defaultJoystickButtons, joystickUnifiedShoulder },
-  { defaultJoystickButtons, joystickDualShoulder },
-  { jetsetJoystickButtons, joystickNoShoulder },
-  { dpadWASDButtons, NULL },
-  { dpadArrowWithCTRL, NULL },
-  { dpadArrowWithSpace, NULL },  
-  { dpadQBert, NULL },  
-  { dpadMC, NULL },  
+  { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSlidersIfNoGameCube },
+  { defaultJoystickButtons, joystickDualShoulder, ellipticalSlidersIfNoGameCube },
+  { jetsetJoystickButtons, joystickNoShoulder, ellipticalSlidersIfNoGameCube },
+  { dpadWASDButtons, NULL, ellipticalSlidersIfNoGameCube },
+  { dpadArrowWithCTRL, NULL, ellipticalSlidersIfNoGameCube },
+  { dpadArrowWithSpace, NULL, ellipticalSlidersIfNoGameCube },  
+  { dpadQBert, NULL, ellipticalSlidersIfNoGameCube },  
+  { dpadMC, NULL, ellipticalSlidersIfNoGameCube },  
 };
 
 #else // SERIAL_DEBUG
