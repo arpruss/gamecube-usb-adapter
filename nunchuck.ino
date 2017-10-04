@@ -22,6 +22,16 @@ static uint8_t sendBytes(uint8_t location, uint8_t value) {
     return 0 == HWire.endTransmission();
 }
 
+uint8_t rescaleNunchuck(uint8_t x) {
+  int32_t x1 = 128+((int32_t)x-128)*12/10;
+  if (x1 < 0)
+    return 0;
+  else if (x1 > 255)
+    return 255;
+  else
+    return x1;
+}
+
 uint8_t nunchuckDeviceInit() {
 #ifdef SERIAL_DEBUG  
     Serial.println("nunchuck init try");
@@ -69,8 +79,8 @@ uint8_t nunchuckReceiveReport(GameCubeData_t* data) {
       Serial.print(String(nunchuckBuffer[i],HEX)+ " ");
     Serial.println("");  */
     //delay(5);
-    data->joystickX = nunchuckBuffer[0];
-    data->joystickY = nunchuckBuffer[1];
+    data->joystickX = rescaleNunchuck(nunchuckBuffer[0]);
+    data->joystickY = rescaleNunchuck(nunchuckBuffer[1]);
     data->buttons = 0;
     if (! (nunchuckBuffer[5] & 1) ) // Z
       data->buttons |= maskA;
