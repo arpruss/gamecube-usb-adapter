@@ -40,7 +40,7 @@ int16_t ellipticalSpeed;
 uint8_t ellipticalDirection;
 
 uint8_t validDevice = DEVICE_NONE;
-
+ 
 const uint32_t watchdogSeconds = 10;
 
 #define MY_SCL PB6
@@ -86,7 +86,7 @@ const uint16_t maskShoulderRight = 0x2000;
 const uint16_t maskShoulderLeft = 0x4000;
 
 const uint8_t shoulderThreshold = 1;
-const uint8_t directionThreshold = 100;
+const uint8_t directionThreshold = 80;
 const uint16_t buttonMasks[] = { maskA, maskB, maskX, maskY, maskStart, maskDLeft, maskDRight, maskDDown, maskDUp, maskZ, maskShoulderRight, maskShoulderLeft };
 const int numberOfHardButtons = sizeof(buttonMasks)/sizeof(*buttonMasks);
 const uint16_t virtualShoulderRightPartial = numberOfHardButtons;
