@@ -1,13 +1,13 @@
 use <roundedsquare.scad>;
 
 //<params>
-includeBottom = 1; // [1:yes, 0:no]
-includeTop = 1; // [1:yes, 0:no]
+includeBottom = 0; // [1:yes, 0:no]
+includeTop = 0; // [1:yes, 0:no]
 includeGamecubePort = 1; // [1:yes, 0:no]
 includeEllipticalPort = 1; // [1:yes, 0:no]
 includeNunchuckPort = 1; // [1:yes, 0:no]
-// TODO:
 includeDirectionSwitchPort = 1; // [1:yes, 0:no]
+includeWashers = 1; // [1:yes, 0:no]
 innerLength = 80;
 extraWidth = 15;
 sideWall = 1.5;
@@ -266,3 +266,13 @@ if (includeBottom)
 if (includeTop)
     translate([0,innerWidth+sideWall+8,0])
     top();
+if (includeWashers) 
+    render(convexity=2)
+    translate([-30,0,0]) {
+        for (i=[0:3])
+            translate([0,i*15,0])
+                difference() {
+                    thinPillar(hole=false,height=2.5);
+                    translate([0,0,-nudge]) thinPillar(hole=true,height=2.5+2*nudge);
+                }
+    }
