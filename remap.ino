@@ -80,7 +80,7 @@ void joystickPOV(const GameCubeData_t* data) {
     Joystick.hat(dir);
 }
 
-uint16_t getEllipticalSpeed(const EllipticalData_t* ellipticalP, uint32_t multiplier) {
+uint16_t getEllipticalSpeed(const EllipticalData_t* ellipticalP, int32_t multiplier) {
   if (multiplier == 0) {
     if (ellipticalP->speed == 0)
       return 512;
