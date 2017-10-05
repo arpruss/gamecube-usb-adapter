@@ -27,6 +27,12 @@
 // Put LEDs + resistors (100-220 ohm) between PA0,PA1,PA2,PA3 and 3.3V
 // Put momentary pushbuttons between PA4 (decrement),PA5 (increment) and 3.3V
 
+// Connections for elliptical:
+// GND - GND
+// PA7--4.7Kohm--rotation detector
+// PA8 - direction control switch, one side
+// 3.3V - direction control switch, other side
+
 #include <libmaple/iwdg.h>
 #include <libmaple/usb_cdcacm.h>
 #include <libmaple/usb.h>

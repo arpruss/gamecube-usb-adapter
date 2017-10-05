@@ -110,7 +110,7 @@ void ellipticalSliders(const GameCubeData_t* data, const EllipticalData_t* ellip
     if (digitalRead(downButton) == 1 && data->device == DEVICE_NUNCHUCK) {
       // useful for calibration and settings for games: when downButton is pressed, joystickY controls both sliders
       if (data->joystickY >= 128+40 || data->joystickY <= 128-40) {
-        int32_t delta = ((int32_t)data->joystickY - 128) * 45 / 10;
+        int32_t delta = ((int32_t)data->joystickY - 128) * 49 / 10;
         uint16_t out;
         if (delta <= -511)
           out = 0;
