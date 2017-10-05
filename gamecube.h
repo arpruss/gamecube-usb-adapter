@@ -304,7 +304,7 @@ const Injector_t injectors[] = {
 #ifdef ENABLE_ELLIPTICAL
   { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 96 },  
   { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 128 },  
-  { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 0 }
+  { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 0 } // for calibration: always max out sliders
 #endif
 };
 
