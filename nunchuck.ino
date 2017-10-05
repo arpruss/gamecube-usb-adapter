@@ -86,6 +86,7 @@ uint8_t nunchuckReceiveReport(GameCubeData_t* data) {
       data->buttons |= maskA;
     if (! (nunchuckBuffer[5] & 2) ) // C
       data->buttons |= maskB;
+    data->device = DEVICE_NUNCHUCK;
     // ignore acceleration for now
 
     return 1;

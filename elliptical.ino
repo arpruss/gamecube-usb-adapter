@@ -2,16 +2,16 @@
 #define MAX_USABLE_RPM 240
 #define SLOWEST_REASONABLE_RPM 15
 
-const uint32_t shortestReasonableRotationTime = 1000 * 60 / BEST_REASONABLE_RPM;
-const uint32_t shortestAllowedRotationTime = 1000 * 60 / MAX_USABLE_RPM;
-const uint32_t longestReasonableRotationTime = 1000 * 60 / SLOWEST_REASONABLE_RPM;
+const uint32_t turnOffSliderTime = 10000l;
+const uint32_t shortestReasonableRotationTime = 1000l * 60 / BEST_REASONABLE_RPM;
+const uint32_t shortestAllowedRotationTime = 1000l * 60 / MAX_USABLE_RPM;
+const uint32_t longestReasonableRotationTime = 1000l * 60 / SLOWEST_REASONABLE_RPM;
 uint32_t newRotationPulseTime = 0;
 uint32_t lastPulse = 0;
+uint16_t ellipticalSpeed = 0;
 
 Debounce debounceRotation(rotationDetector, LOW);
 Debounce debounceDirection(directionSwitch, DIRECTION_SWITCH_FORWARD);
-
-uint8_t ellipticalRotationDetector;
 
 void ellipticalInit() {
 #ifdef ENABLE_ELLIPTICAL
@@ -26,11 +26,16 @@ void ellipticalUpdate(EllipticalData_t* data) {
 #ifdef ENABLE_ELLIPTICAL
   uint32_t dt = millis() - lastPulse;
 
-  if (dt > longestReasonableRotationTime)
+  if (dt > longestReasonableRotationTime) {
     ellipticalSpeed = 0;
+    if (dt > turnOffSliderTime)
+      data->valid = false;
+  }
 
   if (debounceRotation.wasToggled()) {
     ellipticalRotationDetector = ! ellipticalRotationDetector;
+    updateLED();
+    data->valid = true;
 #ifdef SERIAL_DEBUG
     Serial.println("rot="+String(ellipticalRotationDetector));
 #endif    
@@ -50,6 +55,7 @@ void ellipticalUpdate(EllipticalData_t* data) {
       }
     }
   }  
+  
   data->speed = ellipticalSpeed;
   data->direction = debounceDirection.getState();
 #ifdef SERIAL_DEBUG

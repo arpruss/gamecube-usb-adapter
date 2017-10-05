@@ -21,11 +21,13 @@ typedef struct {
   uint8_t cY;
   uint8_t shoulderLeft;
   uint8_t shoulderRight;
+  uint8_t device;
 } GameCubeData_t;
 
 typedef struct {
   uint16_t speed;
   uint8_t direction;
+  uint8_t valid;
 } EllipticalData_t;
 
 void ellipticalUpdate(EllipticalData_t* data);
@@ -39,14 +41,14 @@ void gameCubeSendBits(uint32_t data, uint8_t bits);
 uint8_t gameCubeReceiveBits(void* data0, uint32_t bits);
 uint8_t gameCubeReceiveReport(GameCubeData_t* data, uint8_t rumble);
 uint8_t gameCubeReceiveReport(GameCubeData_t* data);
+void updateLED(void);
 
 uint8_t loadInjectionMode(void);
 void saveInjectionMode(uint8_t mode);
 
-int16_t ellipticalSpeed;
-uint8_t ellipticalDirection;
-
 uint8_t validDevice = DEVICE_NONE;
+uint8_t validUSB = 0;
+uint8_t ellipticalRotationDetector = 0;
  
 const uint32_t watchdogSeconds = 10;
 
@@ -112,7 +114,7 @@ const int numberOfButtons = numberOfHardButtons+6;
 #define CLICK 'c'
 
 typedef void (*GameCubeDataProcessor_t)(const GameCubeData_t* data);
-typedef void (*EllipticalProcessor_t)(const EllipticalData_t* data);
+typedef void (*EllipticalProcessor_t)(const GameCubeData_t* data, const EllipticalData_t* elliptical, int32_t multiplier);
 
 typedef struct {
   char mode;
@@ -132,6 +134,7 @@ typedef struct {
   InjectedButton_t const * buttons;
   GameCubeDataProcessor_t stick;
   EllipticalProcessor_t elliptical;
+  int32_t ellipticalMultiplier; // 64 = default speed ; higher is faster
 } Injector_t;
 
 #ifndef SERIAL_DEBUG
@@ -139,7 +142,7 @@ typedef struct {
 void joystickNoShoulder(const GameCubeData_t* data);
 void joystickDualShoulder(const GameCubeData_t* data);
 void joystickUnifiedShoulder(const GameCubeData_t* data);
-void ellipticalSlidersIfNoGameCube(const EllipticalData_t* ellipticalP);
+void ellipticalSliders(const GameCubeData_t* data, const EllipticalData_t* ellipticalP, int32_t multiplier);
 
 // note: Nunchuck Z maps to A, Nunchuck C maps to B
 const InjectedButton_t defaultJoystickButtons[numberOfButtons] = {
@@ -153,8 +156,8 @@ const InjectedButton_t defaultJoystickButtons[numberOfButtons] = {
     { 0,   {.key = 0 } },             // DDown
     { 0,   {.key = 0 } },             // DUp
     { JOY, {.button = 6 } },          // Z
-    { JOY, {.button = 8 } },           // right shoulder button
-    { JOY, {.button = 7 } },           // left shoulder button
+    { 0, {.key = 0 } }, //{ JOY, {.button = 8 } },           // right shoulder button
+    { 0, {.key = 0 } }, //{ JOY, {.button = 7 } },           // left shoulder button
     { 0,   {.key = 0 } },           // right shoulder button partial
     { 0,   {.key = 0 } },           // left shoulder button partial
     { 0,   {.key = 0 } },           // virtual left
@@ -290,14 +293,18 @@ const InjectedButton_t dpadMC[numberOfButtons] = {
 };
 
 const Injector_t injectors[] = {
-  { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSlidersIfNoGameCube },
-  { defaultJoystickButtons, joystickDualShoulder, ellipticalSlidersIfNoGameCube },
-  { jetsetJoystickButtons, joystickNoShoulder, ellipticalSlidersIfNoGameCube },
-  { dpadWASDButtons, NULL, ellipticalSlidersIfNoGameCube },
-  { dpadArrowWithCTRL, NULL, ellipticalSlidersIfNoGameCube },
-  { dpadArrowWithSpace, NULL, ellipticalSlidersIfNoGameCube },  
-  { dpadQBert, NULL, ellipticalSlidersIfNoGameCube },  
-  { dpadMC, NULL, ellipticalSlidersIfNoGameCube },  
+  { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 64 },
+  { defaultJoystickButtons, joystickDualShoulder, ellipticalSliders, 64 },
+  { jetsetJoystickButtons, joystickNoShoulder, ellipticalSliders, 64 },
+  { dpadWASDButtons, NULL, ellipticalSliders, 64 },
+  { dpadArrowWithCTRL, NULL, ellipticalSliders, 64 },
+  { dpadArrowWithSpace, NULL, ellipticalSliders, 64 },  
+  { dpadQBert, NULL, ellipticalSliders, 64 },  
+  { dpadMC, NULL, ellipticalSliders, 64 },  
+#ifdef ENABLE_ELLIPTICAL
+  { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 96 },  
+  { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 128 },  
+#endif
 };
 
 #else // SERIAL_DEBUG

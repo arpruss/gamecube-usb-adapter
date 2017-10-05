@@ -15,7 +15,7 @@
 //    ===
 //    456
 
-// Connections:
+// Connections for GameCube adapter:
 // GameCube 2--PA6
 // GameCube 2--1Kohm--3.3V
 // GameCube 3--GND
@@ -91,6 +91,10 @@ void setup() {
   iwdg_init(IWDG_PRE_256, watchdogSeconds*156);
 }
 
+void updateLED(void) {
+  gpio_write_bit(ledPort, ledPin, ! (((validDevice != DEVICE_NONE) ^ ellipticalRotationDetector) && validUSB));
+}
+
 uint8_t receiveReport(GameCubeData_t* data) {
   uint8_t success;
 #ifdef ENABLE_GAMECUBE  
@@ -98,7 +102,6 @@ uint8_t receiveReport(GameCubeData_t* data) {
     success = gameCubeReceiveReport(data);
     if (success) {
       validDevice = DEVICE_GAMECUBE;
-      gpio_write_bit(ledPort, ledPin, 0);
       return 1;
     }
     validDevice = DEVICE_NONE;
@@ -109,13 +112,11 @@ uint8_t receiveReport(GameCubeData_t* data) {
     success = nunchuckReceiveReport(data);
     if (success) {
       validDevice = DEVICE_NUNCHUCK;
-      gpio_write_bit(ledPort, ledPin, 0);
       return 1;
     }
   }
 #endif
   validDevice = DEVICE_NONE;
-  gpio_write_bit(ledPort, ledPin, 1);
 }
 
 void loop() {
@@ -172,9 +173,13 @@ void loop() {
 #ifndef SERIAL_DEBUG
   if (!usb_is_connected(USBLIB) || !usb_is_configured(USBLIB)) {
     // we're disconnected; save power by not talking to controller
-    gpio_write_bit(ledPort, ledPin, 1);
+    validUSB = 0;
+    updateLED();
     return;
   } // TODO: fix library so it doesn't send on a disconnected connection; currently, we're relying on the watchdog reset 
+  else {
+    validUSB = 1;
+  }
     // if a disconnection happens at the wrong time
 #endif
 
@@ -194,5 +199,6 @@ void loop() {
 //    Serial.println("fail");
 #endif
   }
+  updateLED();
 }
 

@@ -80,8 +80,14 @@ void joystickPOV(const GameCubeData_t* data) {
     Joystick.hat(dir);
 }
 
-uint16_t getEllipticalSpeed(const EllipticalData_t* ellipticalP) {
-  return 512+(ellipticalP->direction?(int16_t)ellipticalP->speed:-(int16_t)ellipticalP->speed);  
+uint16_t getEllipticalSpeed(const EllipticalData_t* ellipticalP, uint32_t multiplier) {
+  int32_t speed = 512+multiplier*(ellipticalP->direction?(int32_t)ellipticalP->speed:-(int32_t)ellipticalP->speed)/64;
+  if (speed < 0)
+    return 0;
+  else if (speed > 1023)
+    return 1023;
+  else
+    return speed;  
 }
 
 void joystickDualShoulder(const GameCubeData_t* data) {
@@ -91,12 +97,14 @@ void joystickDualShoulder(const GameCubeData_t* data) {
     Joystick.sliderRight(remapRange(data->shoulderRight));
 }
 
-void ellipticalSlidersIfNoGameCube(const EllipticalData_t* ellipticalP) {
-    if(validDevice == DEVICE_GAMECUBE)
+void ellipticalSliders(const GameCubeData_t* data, const EllipticalData_t* ellipticalP, int32_t multiplier) {
+#ifdef ENABLE_ELLIPTICAL
+    if(data->device == DEVICE_GAMECUBE && ! ellipticalP->valid)
       return;
-    uint16_t datum = getEllipticalSpeed(ellipticalP);
+    uint16_t datum = getEllipticalSpeed(ellipticalP, multiplier);
     Joystick.sliderLeft(datum);
     Joystick.sliderRight(datum);
+#endif
 }
 
 void joystickUnifiedShoulder(const GameCubeData_t* data) {
@@ -147,7 +155,8 @@ void inject(const Injector_t* injector, const GameCubeData_t* curDataP, const El
     injector->stick(curDataP);
 
   if (injector->elliptical != NULL)
-    injector->elliptical(ellipticalP);
+    //ellipticalSliders(curDataP, ellipticalP);
+    injector->elliptical(curDataP, ellipticalP, injector->ellipticalMultiplier);
 
   if (didJoystick)
     Joystick.sendManualReport();

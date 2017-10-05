@@ -87,6 +87,7 @@ uint8_t gameCubeReceiveReport(GameCubeData_t* data, uint8_t rumble) {
   nvic_globalirq_disable();
   gameCubeSendBits(rumble ? 0b0100000000000011000000011l : 0b0100000000000011000000001l, 25); 
   uint8_t success = gameCubeReceiveBits(data, 64);
+  data->device = DEVICE_GAMECUBE;
   nvic_globalirq_enable();
   if (success && 0 == (data->buttons & 0x80) && (data->buttons & 0x8000) ) {
     return 1;

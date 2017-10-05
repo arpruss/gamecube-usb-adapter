@@ -7,7 +7,7 @@ includeGamecubePort = 1; // [1:yes, 0:no]
 includeEllipticalPort = 1; // [1:yes, 0:no]
 includeNunchuckPort = 1; // [1:yes, 0:no]
 includeDirectionSwitchPort = 1; // [1:yes, 0:no]
-includeWashers = 1; // [1:yes, 0:no]
+includeWashers = 0; // [1:yes, 0:no]
 innerLength = 80;
 extraWidth = 15;
 sideWall = 1.5;
@@ -63,6 +63,7 @@ nunchuckScrewHoleXSpacing = 2.54*6;
 
 module dummy() {}
 
+includeSpacer = 1;
 $fn = 32;
 nudge = 0.001;
 
@@ -173,7 +174,18 @@ module thinPillar(hole=false,height=10) {
     }
 }
 
-
+module spacer() {
+    linear_extrude(height=0.75) {
+        difference() {
+            hull() {
+                circle(d=thinPillarDiameter);
+                translate([0,stm32ScrewYSpacing]) circle(d=thinPillarDiameter);
+            }
+            circle(d=screwDiameter+5*tolerance);
+            translate([0,stm32ScrewYSpacing]) circle(d=screwDiameter+5*tolerance);
+        }
+    }
+}
 
 module bottom() {
     render(convexity=2)
@@ -271,8 +283,11 @@ if (includeWashers)
     translate([-30,0,0]) {
         for (i=[0:3])
             translate([0,i*15,0])
+                scale([1.25,1.25,0])
                 difference() {
-                    thinPillar(hole=false,height=2.5);
-                    translate([0,0,-nudge]) thinPillar(hole=true,height=2.5+2*nudge);
+                    thinPillar(hole=false,height=2);
+                    translate([0,0,-nudge]) thinPillar(hole=true,height=2+2*nudge);
                 }
     }
+ if (includeSpacer) 
+    translate([-50,0,0]) spacer();
