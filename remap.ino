@@ -82,7 +82,7 @@ void joystickPOV(const GameCubeData_t* data) {
 
 uint16_t getEllipticalSpeed(const EllipticalData_t* ellipticalP, uint32_t multiplier) {
   if (multiplier == 0) {
-    if (speed == 0)
+    if (ellipticalP->speed == 0)
       return 512;
     else if (ellipticalP->direction)
       return 1023;
