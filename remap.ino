@@ -107,11 +107,29 @@ void joystickDualShoulder(const GameCubeData_t* data) {
 
 void ellipticalSliders(const GameCubeData_t* data, const EllipticalData_t* ellipticalP, int32_t multiplier) {
 #ifdef ENABLE_ELLIPTICAL
+    if (digitalRead(downButton) == 1 && data->device == DEVICE_NUNCHUCK) {
+      // useful for calibration and settings for games: when downButton is pressed, joystickY controls both sliders
+      if (data->joystickY >= 128+40 || data->joystickY <= 128-40) {
+        int32_t delta = ((int32_t)data->joystickY - 128) * 45 / 10;
+        uint16_t out;
+        if (delta <= -511)
+          out = 0;
+        else if (delta >= 511)
+          out = 1023;
+        else
+          out = 512 + delta;
+        Joystick.sliderLeft(out);
+        Joystick.sliderRight(out);
+        debounceDown.cancelRelease();
+        return;
+      }
+    }
     if(data->device == DEVICE_GAMECUBE && ! ellipticalP->valid)
       return;
     uint16_t datum = getEllipticalSpeed(ellipticalP, multiplier);
     Joystick.sliderLeft(datum);
     Joystick.sliderRight(datum);
+
 #endif
 }
 

@@ -142,7 +142,7 @@ void loop() {
     do {
       ellipticalUpdate(&elliptical);
       
-      if (debounceDown.wasPressed()) {
+      if (debounceDown.wasReleased()) {
         if (injectionMode == 0)
           injectionMode = numInjectionModes-1;
         else

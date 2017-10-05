@@ -23,7 +23,7 @@ static uint8_t sendBytes(uint8_t location, uint8_t value) {
 }
 
 uint8_t rescaleNunchuck(uint8_t x) {
-  int32_t x1 = 128+((int32_t)x-128)*12/10;
+  int32_t x1 = 128+((int32_t)x-128)*13/10;
   if (x1 < 0)
     return 0;
   else if (x1 > 255)

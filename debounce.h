@@ -8,6 +8,7 @@ class Debounce {
     uint8_t curValue;
     uint32_t debounceTime = 20;
     int pin;
+    bool releaseCanceled = false;
 
     bool update(void) {
       uint8_t v = digitalRead(pin);
@@ -56,6 +57,24 @@ class Debounce {
     // for press monitoring
     bool wasPressed(void) {
       return wasToggled() && curValue == activeValue;
+    }
+
+    void cancelRelease(void) {
+      releaseCanceled = true;
+    }
+
+    // for release monitoring
+    bool wasReleased(void) {
+      if (wasToggled() && curValue == ! activeValue) {
+        if (releaseCanceled) {
+          releaseCanceled = false;
+          return false;
+        }
+        else {
+          return true;
+        }
+      }
+      return false;
     }
 };
 
