@@ -36,9 +36,6 @@ void ellipticalUpdate(EllipticalData_t* data) {
     ellipticalRotationDetector = ! ellipticalRotationDetector;
     updateLED();
     data->valid = true;
-#ifdef SERIAL_DEBUG
-    Serial.println("rot="+String(ellipticalRotationDetector));
-#endif    
     newRotationPulseTime = millis();
     if (ellipticalRotationDetector) {
       lastPulse = millis();
@@ -59,8 +56,8 @@ void ellipticalUpdate(EllipticalData_t* data) {
   data->speed = ellipticalSpeed;
   data->direction = debounceDirection.getState();
 #ifdef SERIAL_DEBUG
-    Serial.println("speed="+String(data->speed));
-    Serial.println("dir="+String(data->direction));
+//    Serial.println("speed="+String(data->speed));
+//    Serial.println("dir="+String(data->direction));
 #endif    
 #else
   data->speed = 0;

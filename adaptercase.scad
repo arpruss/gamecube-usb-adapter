@@ -3,11 +3,12 @@ use <roundedsquare.scad>;
 //<params>
 includeBottom = 0; // [1:yes, 0:no]
 includeTop = 0; // [1:yes, 0:no]
-includeGamecubePort = 1; // [1:yes, 0:no]
-includeEllipticalPort = 1; // [1:yes, 0:no]
-includeNunchuckPort = 1; // [1:yes, 0:no]
+includeGamecubePort = 0; // [1:yes, 0:no]
+includeEllipticalPort = 0; // [1:yes, 0:no]
+includeNunchuckPort = 0; // [1:yes, 0:no]
 includeDirectionSwitchPort = 1; // [1:yes, 0:no]
 includeWashers = 0; // [1:yes, 0:no]
+includeFeet = 1; // [1:yes, 0:no]
 innerLength = 80;
 extraWidth = 15;
 sideWall = 1.5;
@@ -63,7 +64,7 @@ nunchuckScrewHoleXSpacing = 2.54*6;
 
 module dummy() {}
 
-includeSpacer = 1;
+includeSpacer = 0;
 $fn = 32;
 nudge = 0.001;
 
@@ -291,3 +292,11 @@ if (includeWashers)
     }
  if (includeSpacer) 
     translate([-50,0,0]) spacer();
+ if (includeFeet) 
+    translate([-70,0,0]) {
+        for (i=[0:0])
+            translate([0,i*15,0]) {
+                cylinder(d=fatPillarDiameter,h=3);
+                cylinder(d=screwHeadDiameter-1,h=7.5);
+            }
+    }
