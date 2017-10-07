@@ -28,7 +28,8 @@
 
 // Connections for elliptical:
 // GND - GND
-// PA7--4.7Kohm--rotation detector
+// PA7--4.7Kohm--rotation detector [the resistor may not be needed]
+// PA7--100Kohm--3.3V
 // PA8 - direction control switch, one side
 // 3.3V - direction control switch, other side
 
