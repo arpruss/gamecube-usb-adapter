@@ -57,6 +57,15 @@ void setup() {
   pinMode(downButton, INPUT_PULLDOWN);
   pinMode(upButton, INPUT_PULLDOWN);
   
+#ifdef SERIAL_DEBUG
+  Serial.begin(115200);
+  displayNumber(3);
+  delay(4000);
+  Serial.println("gamecube controller adapter");
+#else
+  Joystick.setManualReportMode(true);
+#endif
+
   ellipticalInit();
 
 #ifdef ENABLE_GAMECUBE
@@ -69,13 +78,6 @@ void setup() {
   debounceDown.begin();
   debounceUp.begin();
 
-#ifdef SERIAL_DEBUG
-  Serial.begin(115200);
-  delay(4000);
-  Serial.println("gamecube controller adapter");
-#else
-  Joystick.setManualReportMode(true);
-#endif
   pinMode(ledPinID, OUTPUT);
 
   EEPROM8_init();
@@ -102,6 +104,7 @@ void updateLED(void) {
 
 uint8_t receiveReport(GameCubeData_t* data) {
   uint8_t success;
+
 #ifdef ENABLE_GAMECUBE  
   if (validDevice == DEVICE_GAMECUBE || validDevice == DEVICE_NONE) {
     success = gameCubeReceiveReport(data);
@@ -122,6 +125,17 @@ uint8_t receiveReport(GameCubeData_t* data) {
   }
 #endif
   validDevice = DEVICE_NONE;
+  
+  data->joystickX = 128;
+  data->joystickY = 128;
+  data->cX = 128;
+  data->cY = 128;
+  data->buttons = 0;
+  data->shoulderLeft = 0;
+  data->shoulderRight = 0;
+  data->device = DEVICE_NONE;
+
+  return 0;
 }
 
 void loop() {
@@ -131,7 +145,7 @@ void loop() {
   iwdg_feed();
   
   uint32_t t0 = millis();
-  while (digitalRead(downButton) == 1 && digitalRead(upButton) == 1 && (millis()-t0)<5000);
+  while (debounceDown.getRawState() && debounceUp.getRawState() && (millis()-t0)<5000);
   
   iwdg_feed();
 
@@ -188,22 +202,17 @@ void loop() {
     // if a disconnection happens at the wrong time
 #endif
 
-  if (receiveReport(&data)) {
+  receiveReport(&data);
 #ifdef SERIAL_DEBUG
-    Serial.println("buttons1 = "+String(data.buttons));  
-    Serial.println("joystick = "+String(data.joystickX)+","+String(data.joystickY));  
-    Serial.println("c-stick = "+String(data.cX)+","+String(data.cY));  
-    Serial.println("shoulders = "+String(data.shoulderLeft)+","+String(data.shoulderRight));      
-#else 
-    if (usb_is_connected(USBLIB) && usb_is_configured(USBLIB)) 
-      inject(injectors + injectionMode, &data, &elliptical);
+//  Serial.println("buttons1 = "+String(data.buttons));  
+//  Serial.println("joystick = "+String(data.joystickX)+","+String(data.joystickY));  
+//  Serial.println("c-stick = "+String(data.cX)+","+String(data.cY));  
+//  Serial.println("shoulders = "+String(data.shoulderLeft)+","+String(data.shoulderRight));      
+#else
+if (usb_is_connected(USBLIB) && usb_is_configured(USBLIB)) 
+    inject(injectors + injectionMode, &data, &elliptical);
 #endif
-  }
-  else {
-#ifdef SERIAL_DEBUG
-//    Serial.println("fail");
-#endif
-  }
+    
   updateLED();
 }
 

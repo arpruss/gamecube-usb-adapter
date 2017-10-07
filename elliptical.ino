@@ -12,13 +12,17 @@ uint16_t ellipticalSpeed = 0;
 
 Debounce debounceRotation(rotationDetector, LOW);
 Debounce debounceDirection(directionSwitch, DIRECTION_SWITCH_FORWARD);
+//DebounceAnalog analogRotation(rotationDetector, LOW);
 
 void ellipticalInit() {
 #ifdef ENABLE_ELLIPTICAL
-  pinMode(rotationDetector, INPUT_PULLUP);
+  pinMode(rotationDetector, INPUT); //ARP
   pinMode(directionSwitch, INPUT_PULLDOWN);
 #endif
   ellipticalSpeed = 512;
+  debounceRotation.begin();
+  debounceDirection.begin();
+//  analogRotation.begin();
   ellipticalRotationDetector = debounceRotation.getState();
 }
 
@@ -56,8 +60,8 @@ void ellipticalUpdate(EllipticalData_t* data) {
   data->speed = ellipticalSpeed;
   data->direction = debounceDirection.getState();
 #ifdef SERIAL_DEBUG
-//    Serial.println("speed="+String(data->speed));
-//    Serial.println("dir="+String(data->direction));
+    Serial.println("speed="+String(data->speed));
+    Serial.println("dir="+String(data->direction));
 #endif    
 #else
   data->speed = 0;

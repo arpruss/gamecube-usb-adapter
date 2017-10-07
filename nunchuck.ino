@@ -76,7 +76,6 @@ uint8_t nunchuckReceiveReport(GameCubeData_t* data) {
     }
     if (count < 6)
       return 0;
-    memset(data,0,sizeof(GameCubeData_t));
 /*    for (int i=0;i<6;i++)
       Serial.print(String(nunchuckBuffer[i],HEX)+ " ");
     Serial.println("");  */

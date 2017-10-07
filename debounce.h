@@ -1,40 +1,64 @@
 #ifndef _DEBOUNCE_H
 #define _DEBOUNCE_H
 
+#define STM32_SPECIFIC
+
 class Debounce {
-  private:
+  protected:
     uint32_t lastToggleTime;
     uint8_t activeValue;
-    uint8_t curValue;
-    uint32_t debounceTime = 20;
-    int pin;
+    bool curState;
+    bool highState;
+    bool lowState;
+    uint32_t debounceTime;
     bool releaseCanceled = false;
+#ifdef STM32_SPECIFIC
+    volatile uint32_t* port;
+    uint32_t mask;
+#endif
+    int pin;
 
+    Debounce() {}
+
+  public:
+    virtual inline bool getRawState(void) {
+#ifdef STM32_SPECIFIC      
+      if (*port & mask) 
+        return highState;
+      else
+        return lowState;
+#else            
+      return activeValue==digitalRead(pin);      
+#endif
+    }
+
+  private:
     bool update(void) {
-      uint8_t v = digitalRead(pin);
+      bool v = getRawState();
       uint32_t t = millis();
-      if (v != curValue && t - lastToggleTime >= debounceTime) {
+      if (v != curState && t - lastToggleTime >= debounceTime) {
         lastToggleTime = t;
-        curValue = v;
+        curState = v;
         return true;
       }
       return false;
     }
 
   public:
-    Debounce(int p, uint8_t a) {
+    Debounce(int p, uint8_t active=HIGH, uint32_t time=20) {
+      activeValue = active;
+      debounceTime = time;
+      highState = active==HIGH;
+      lowState = active==LOW;
       pin = p;
-      activeValue = a;
-    }
-
-    Debounce(int p, uint8_t a, uint32_t t) {
-      pin = p;
-      activeValue = a;
-      debounceTime = t;
+#ifdef STM32_SPECIFIC
+      port = &(PIN_MAP[p].gpio_device->regs->IDR);
+      mask = 1u << PIN_MAP[p].gpio_bit;
+#endif
     }
 
     void begin(void) {
-      curValue = digitalRead(pin);      
+      curState = getRawState();
       lastToggleTime = millis();
     }
 
@@ -51,12 +75,12 @@ class Debounce {
     // for state monitoring
     bool getState(void) {
       update();
-      return curValue == activeValue;
+      return curState;
     }
 
     // for press monitoring
     bool wasPressed(void) {
-      return wasToggled() && curValue == activeValue;
+      return wasToggled() && curState; // curState value is a side-effect of wasToggled()
     }
 
     void cancelRelease(void) {
@@ -65,7 +89,7 @@ class Debounce {
 
     // for release monitoring
     bool wasReleased(void) {
-      if (wasToggled() && curValue == ! activeValue) {
+      if (wasToggled() && ! curState) { // curState value is a side-effect of wasToggled()        
         if (releaseCanceled) {
           releaseCanceled = false;
           return false;
@@ -78,5 +102,27 @@ class Debounce {
     }
 };
 
+class DebounceAnalog : public Debounce {
+  private:
+    uint16_t threshold;
+    
+  public:
+    bool getRawState(void) {
+      uint16_t value;
+      // TODO: go analog
+      if (analogRead(pin) >= threshold) 
+        return highState;
+      else
+        return lowState; 
+    }
+
+    DebounceAnalog(int p, uint8_t active=HIGH, uint16_t threshold=512, uint32_t time=20) : Debounce() {
+      activeValue = active;
+      debounceTime = time;  
+      highState = active==HIGH;
+      lowState = active==LOW;
+      pin = p;
+    }
+};
 #endif
 
