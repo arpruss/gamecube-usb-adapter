@@ -1,16 +1,16 @@
 use <roundedsquare.scad>;
 
 //<params>
-includeBottom = 0; // [1:yes, 0:no]
-includeTop = 0; // [1:yes, 0:no]
+includeBottom = 1; // [1:yes, 0:no]
+includeTop = 1; // [1:yes, 0:no]
 includeGamecubePort = 1; // [1:yes, 0:no]
 includeEllipticalPort = 1; // [1:yes, 0:no]
 includeNunchuckPort = 1; // [1:yes, 0:no]
 includeDirectionSwitchPort = 1; // [1:yes, 0:no]
 includeWashers = 0; // [1:yes, 0:no]
-includeFeet = 1; // [1:yes, 0:no]
+includeFeet = 0; // [1:yes, 0:no]
 innerLength = 80;
-extraWidth = 15;
+extraWidth = 18;
 sideWall = 1.5;
 topWall = 1.6;
 bottomWall = 2;
@@ -89,7 +89,7 @@ stm32ScrewY1 = fatPillarLocations[0][1]+fatPillarDiameter/2+thinPillarDiameter/2
 ellipticalCableY = fatPillarLocations[1][1]-fatPillarDiameter-1.5*ellipticalCableMinorDiameter;
 gcPortY = stm32ScrewY1+stm32ScrewYSpacing/2;
 
-nunchuckPortY = innerWidth+sideWall-fatPillarDiameter-nunchuckPortWidth/2-nunchuckPortTolerance*2;// (stm32ScrewY1+stm32ScrewYSpacing+thinPillarDiameter+innerWidth-fatPillarDiameter)*0.5;
+nunchuckPortY = innerWidth+sideWall-fatPillarDiameter-nunchuckPortWidth/2-nunchuckPortTolerance*2-2*sideWall;// (stm32ScrewY1+stm32ScrewYSpacing+thinPillarDiameter+innerWidth-fatPillarDiameter)*0.5;
 nx0 = innerLength+sideWall-nunchuckScrewHoleXMinusFromOutsideOfWall;
 ny0 = nunchuckPortY-nunchuckScrewHoleYMinusFromCenterOfPort;
 nunchuckPillarLocations = [
@@ -297,6 +297,6 @@ if (includeWashers)
         for (i=[0:0])
             translate([0,i*15,0]) {
                 cylinder(d=fatPillarDiameter,h=3);
-                cylinder(d=screwHeadDiameter-0.5,h=7.5);
+                cylinder(d=screwHeadDiameter-0.7,h=7.5);
             }
     }
