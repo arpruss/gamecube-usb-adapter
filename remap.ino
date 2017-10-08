@@ -89,7 +89,7 @@ uint16_t getEllipticalSpeed(const EllipticalData_t* ellipticalP, int32_t multipl
     else
       return 0;
   }
-  int32_t speed = 512+multiplier*(ellipticalP->direction?(int32_t)ellipticalP->speed:-(int32_t)ellipticalP->speed)/64;
+  int32_t speed = 512+multiplier*(ellipticalP->direction?ellipticalP->speed:-ellipticalP->speed)/64;
   if (speed < 0)
     return 0;
   else if (speed > 1023)

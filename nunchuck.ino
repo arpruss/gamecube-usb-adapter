@@ -62,7 +62,7 @@ uint8_t nunchuckReceiveReport(GameCubeData_t* data) {
 
     delayMicroseconds(500);
 #ifdef SERIAL_DEBUG
-    Serial.println("Requested");
+//    Serial.println("Requested");
 #endif
 
     HWire.requestFrom(i2cAddress, 6);

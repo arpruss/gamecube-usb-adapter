@@ -1,6 +1,8 @@
-#define BEST_REASONABLE_RPM 120
-#define MAX_USABLE_RPM 240
-#define SLOWEST_REASONABLE_RPM 15
+#define MAX_SPEED_VALUE 800
+
+#define BEST_REASONABLE_RPM 188 // 120 // 188
+#define MAX_USABLE_RPM      300
+#define SLOWEST_REASONABLE_RPM 5
 
 const uint32_t turnOffSliderTime = 10000l;
 const uint32_t shortestReasonableRotationTime = 1000l * 60 / BEST_REASONABLE_RPM;
@@ -8,7 +10,7 @@ const uint32_t shortestAllowedRotationTime = 1000l * 60 / MAX_USABLE_RPM;
 const uint32_t longestReasonableRotationTime = 1000l * 60 / SLOWEST_REASONABLE_RPM;
 uint32_t newRotationPulseTime = 0;
 uint32_t lastPulse = 0;
-uint16_t ellipticalSpeed = 0;
+int32_t ellipticalSpeed;
 
 Debounce debounceRotation(rotationDetector, LOW);
 Debounce debounceDirection(directionSwitch, DIRECTION_SWITCH_FORWARD);
@@ -19,11 +21,11 @@ void ellipticalInit() {
   pinMode(rotationDetector, INPUT); //ARP
   pinMode(directionSwitch, INPUT_PULLDOWN);
 #endif
-  ellipticalSpeed = 512;
   debounceRotation.begin();
   debounceDirection.begin();
 //  analogRotation.begin();
   ellipticalRotationDetector = debounceRotation.getState();
+  ellipticalSpeed = 0;
 }
 
 void ellipticalUpdate(EllipticalData_t* data) {
@@ -34,6 +36,9 @@ void ellipticalUpdate(EllipticalData_t* data) {
     ellipticalSpeed = 0;
     if (dt > turnOffSliderTime)
       data->valid = false;
+  }
+  else if ( 800 * shortestReasonableRotationTime < dt * ellipticalSpeed) {
+    ellipticalSpeed = 800 * shortestReasonableRotationTime / dt;
   }
 
   if (debounceRotation.wasToggled()) {
@@ -51,7 +56,7 @@ void ellipticalUpdate(EllipticalData_t* data) {
           if (dt < shortestReasonableRotationTime) {
             dt = shortestReasonableRotationTime;
           }
-          ellipticalSpeed = 511 * shortestReasonableRotationTime / dt;
+          ellipticalSpeed = 800 * shortestReasonableRotationTime / dt;
         } 
       }
     }
@@ -60,8 +65,6 @@ void ellipticalUpdate(EllipticalData_t* data) {
   data->speed = ellipticalSpeed;
   data->direction = debounceDirection.getState();
 #ifdef SERIAL_DEBUG
-    Serial.println("speed="+String(data->speed));
-    Serial.println("dir="+String(data->direction));
 #endif    
 #else
   data->speed = 0;

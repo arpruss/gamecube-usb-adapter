@@ -1,7 +1,9 @@
 #ifndef _GAMECUBE_H
 #define _GAMECUBE_H
 
-//#define SERIAL_DEBUG
+#ifdef USB_SERIAL
+# define SERIAL_DEBUG
+#endif
 #define ENABLE_GAMECUBE
 #define ENABLE_NUNCHUCK
 #define ENABLE_ELLIPTICAL
@@ -25,7 +27,7 @@ typedef struct {
 } GameCubeData_t;
 
 typedef struct {
-  uint16_t speed;
+  int32_t speed;
   uint8_t direction;
   uint8_t valid;
 } EllipticalData_t;
@@ -294,7 +296,7 @@ const InjectedButton_t dpadMC[numberOfButtons] = {
 
 const Injector_t injectors[] = {
   { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 64 },
-  { defaultJoystickButtons, joystickDualShoulder, ellipticalSliders, 64 },
+  { defaultJoystickButtons, joystickDualShoulder, ellipticalSliders, 40 },
   { jetsetJoystickButtons, joystickNoShoulder, ellipticalSliders, 64 },
   { dpadWASDButtons, NULL, ellipticalSliders, 64 },
   { dpadArrowWithCTRL, NULL, ellipticalSliders, 64 },
