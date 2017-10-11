@@ -99,8 +99,17 @@ void setup() {
   iwdg_init(IWDG_PRE_256, watchdogSeconds*156);
 }
 
+uint8_t poorManPWM = 0;
 void updateLED(void) {
-  gpio_write_bit(ledPort, ledPin, ! (((validDevice != DEVICE_NONE) ^ ellipticalRotationDetector) && validUSB));
+  if (((validDevice != DEVICE_NONE) ^ ellipticalRotationDetector) && validUSB) {
+    gpio_write_bit(ledPort, ledPin, poorManPWM);
+    poorManPWM ^= 1;
+  }
+  else {
+    gpio_write_bit(ledPort, ledPin, 1);
+    //analogWrite(ledPinID, 255);
+  }
+  //gpio_write_bit(ledPort, ledPin, ! (((validDevice != DEVICE_NONE) ^ ellipticalRotationDetector) && validUSB));
 }
 
 uint8_t receiveReport(GameCubeData_t* data) {
@@ -126,7 +135,7 @@ uint8_t receiveReport(GameCubeData_t* data) {
   }
 #endif
   validDevice = DEVICE_NONE;
-  
+
   data->joystickX = 128;
   data->joystickY = 128;
   data->cX = 128;
@@ -146,7 +155,8 @@ void loop() {
   iwdg_feed();
   
   uint32_t t0 = millis();
-  while (debounceDown.getRawState() && debounceUp.getRawState() && (millis()-t0)<5000);
+  while (debounceDown.getRawState() && debounceUp.getRawState() && (millis()-t0)<5000)
+        updateLED();
   
   iwdg_feed();
 
@@ -179,6 +189,7 @@ void loop() {
         Serial.println("Changed to "+String(injectionMode));
   #endif
       }
+      updateLED();
     } while((millis()-t0) < 6);
   }
 
@@ -206,7 +217,7 @@ void loop() {
   receiveReport(&data);
 #ifdef SERIAL_DEBUG
 //  Serial.println("buttons1 = "+String(data.buttons));  
-//  Serial.println("joystick = "+String(data.joystickX)+","+String(data.joystickY));  
+  Serial.println("joystick = "+String(data.joystickX)+","+String(data.joystickY));  
 //  Serial.println("c-stick = "+String(data.cX)+","+String(data.cY));  
 //  Serial.println("shoulders = "+String(data.shoulderLeft)+","+String(data.shoulderRight));      
 #else

@@ -58,8 +58,8 @@ const uint32_t watchdogSeconds = 10;
 #define MY_SDA PB7
 
 const uint32_t indicatorLEDs[] = { PA0, PA1, PA2, PA3 };
-const uint8_t ledBrightnessLevels[] = {50,50,50,50}; 
-//const uint8_t ledBrightnessLevels[] = { 50, 25, 25, 150 }; // my PA3 LED is dimmer for some reason
+const uint8_t ledBrightnessLevels[] = {20,20,20,20}; 
+//const uint8_t ledBrightnessLevels[] = { 30, 30, 30, 150 }; // my PA3 LED is dimmer for some reason
 const int numIndicators = sizeof(indicatorLEDs)/sizeof(*indicatorLEDs);
 const uint32_t downButton = PA4;
 const uint32_t upButton = PA5;

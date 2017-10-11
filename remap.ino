@@ -6,23 +6,28 @@ uint8_t prevButtons[numberOfButtons];
 uint8_t curButtons[numberOfButtons];
 GameCubeData_t oldData;
 bool didJoystick;
+const Injector_t* prevInjector = NULL;
 
 void buttonizeStick(uint8_t* buttons, uint8_t x, uint8_t y) {
-  int dx = abs((int)x-(int)128);
-  int dy = abs((int)y-(int)128);
+  uint8_t dx = x < 128 ? 128 - x : x - 128;
+  uint8_t dy = y < 128 ? 128 - y : y - 128;
   if (dx > dy) {
       if(dx > directionThreshold) {
-        if (x < 128)
+        if (x < 128) {
           buttons[virtualLeft] = 1;
-        else
+        }
+        else {
           buttons[virtualRight] = 1;
+        }
       }
   }
   else if (dx < dy && dy > directionThreshold) {
-    if (y < 128)
+    if (y < 128) {
       buttons[virtualDown] = 1;
-    else 
+    }
+    else {
       buttons[virtualUp] = 1;
+    }
   }
 }
 
@@ -33,7 +38,7 @@ void toButtonArray(uint8_t* buttons, const GameCubeData_t* data) {
   buttons[virtualShoulderLeftPartial] = data->shoulderLeft>=shoulderThreshold;
   buttons[virtualLeft] = buttons[virtualRight] = buttons[virtualDown] = buttons[virtualUp] = 0;
   buttonizeStick(buttons, data->joystickX, data->joystickY);
-  buttonizeStick(buttons, data->cX, data->cY); 
+//  buttonizeStick(buttons, data->cX, data->cY); 
 }
 
 inline uint16_t remapRange(uint8_t x) {
@@ -122,7 +127,7 @@ void ellipticalSliders(const GameCubeData_t* data, const EllipticalData_t* ellip
         Joystick.sliderRight(out);
         debounceDown.cancelRelease();
         return;
-      }
+       }
     }
     if(data->device == DEVICE_GAMECUBE && ! ellipticalP->valid)
       return;
@@ -150,6 +155,14 @@ void joystickNoShoulder(const GameCubeData_t* data) {
 
 void inject(const Injector_t* injector, const GameCubeData_t* curDataP, const EllipticalData_t* ellipticalP) {
   didJoystick = false;
+
+  if (prevInjector != injector) {
+    Keyboard.releaseAll();
+    Mouse.release(0xFF);
+    for (int i=0; i<32; i++)
+      Joystick.button(i, 0);
+    prevInjector = injector;
+  }
 
   memcpy(prevButtons, curButtons, sizeof(curButtons));
   toButtonArray(curButtons, curDataP);

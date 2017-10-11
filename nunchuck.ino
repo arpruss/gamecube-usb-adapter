@@ -85,7 +85,10 @@ uint8_t nunchuckReceiveReport(GameCubeData_t* data) {
     if (! (nunchuckBuffer[5] & 1) ) // Z
       data->buttons |= maskA;
     if (! (nunchuckBuffer[5] & 2) ) // C
-      data->buttons |= maskB;
+    data->cX = 128;
+    data->cY = 128;
+    data->shoulderLeft = 0;
+    data->shoulderRight = 0;
     data->device = DEVICE_NUNCHUCK;
     // ignore acceleration for now
 
