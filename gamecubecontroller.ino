@@ -33,6 +33,8 @@
 // PA8 - direction control switch, one side
 // 3.3V - direction control switch, other side
 
+// Make sure there are 4.7Kohm? pullups for the two i2c data lines
+
 #include <libmaple/iwdg.h>
 #include <libmaple/usb_cdcacm.h>
 #include <libmaple/usb.h>
@@ -115,7 +117,7 @@ void updateLED(void) {
 uint8_t receiveReport(GameCubeData_t* data) {
   uint8_t success;
 
-#ifdef ENABLE_GAMECUBE  
+#ifdef ENABLE_GAMECUBE
   if (validDevice == DEVICE_GAMECUBE || validDevice == DEVICE_NONE) {
     success = gameCubeReceiveReport(data);
     if (success) {

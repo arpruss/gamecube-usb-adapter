@@ -2,14 +2,14 @@
 #include <string.h>
 
 #define SOFT_I2C // currently, HardWire doesn't work well for hotplugging
-#undef MANUAL_DECRYPT
+//#define MANUAL_DECRYPT
 
 #ifdef SOFT_I2C
-#include <Wire.h>
-TwoWire HWire(MY_SCL, MY_SDA, SOFT_STANDARD); 
+#include <SoftWire.h>
+TwoWire MyWire(MY_SCL, MY_SDA, SOFT_STANDARD); 
 #else
-#include <HardWire.h>
-HardWire HWire(1, I2C_FAST_MODE); 
+#include <Wire.h>
+HardWire MyWire(1, 0); // I2C_FAST_MODE); 
 #endif
 
 const uint8_t i2cAddress = 0x52;
@@ -17,14 +17,14 @@ const uint8_t i2cAddress = 0x52;
 static uint8_t nunchuckBuffer[6];
 
 void nunchuckInit() {
-  HWire.begin();
+    MyWire.begin();
 }
 
 static uint8_t sendBytes(uint8_t location, uint8_t value) {
-    HWire.beginTransmission(i2cAddress);
-    HWire.write(location);
-    HWire.write(value);
-    return 0 == HWire.endTransmission();
+    MyWire.beginTransmission(i2cAddress);
+    MyWire.write(location);
+    MyWire.write(value);
+    return 0 == MyWire.endTransmission();
 }
 
 uint8_t rescaleNunchuck(uint8_t x) {
@@ -39,12 +39,14 @@ uint8_t rescaleNunchuck(uint8_t x) {
 
 uint8_t nunchuckDeviceInit() {
 #ifdef MANUAL_DECRYPT
-    if (!sendBytes(0x40,0x00))
+    if (!sendBytes(0x40,0x00)) {
         return 0; 
+    }
     delayMicroseconds(250);
 #else
-    if (! sendBytes(0xF0, 0x55)) 
+    if (! sendBytes(0xF0, 0x55)) {
         return 0;
+    }
     delayMicroseconds(250);
     if (! sendBytes(0xFB, 0x00)) 
         return 0;
@@ -55,9 +57,9 @@ uint8_t nunchuckDeviceInit() {
 
 uint8_t nunchuckReceiveReport(GameCubeData_t* data) {
 
-    HWire.beginTransmission(i2cAddress);
-    HWire.write(0x00);
-    if (0!=HWire.endTransmission()) 
+    MyWire.beginTransmission(i2cAddress);
+    MyWire.write(0x00);
+    if (0!=MyWire.endTransmission()) 
       return 0;
 
     delayMicroseconds(500);
@@ -65,13 +67,13 @@ uint8_t nunchuckReceiveReport(GameCubeData_t* data) {
 //    Serial.println("Requested");
 #endif
 
-    HWire.requestFrom(i2cAddress, 6);
+    MyWire.requestFrom(i2cAddress, 6);
     int count = 0;
-    while (HWire.available() && count<6) {
+    while (MyWire.available() && count<6) {
 #ifdef MANUAL_DECRYPT
-      nunchuckBuffer[count++] = ((uint8_t)0x17^(uint8_t)HWire.read()) + (uint8_t)0x17;
+      nunchuckBuffer[count++] = ((uint8_t)0x17^(uint8_t)MyWire.read()) + (uint8_t)0x17;
 #else
-      nunchuckBuffer[count++] = HWire.read();
+      nunchuckBuffer[count++] = MyWire.read();
 #endif      
     }
     if (count < 6)
