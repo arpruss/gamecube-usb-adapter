@@ -26,12 +26,24 @@
 // Put LEDs + resistors (100-220 ohm) between PA0,PA1,PA2,PA3 and 3.3V
 // Put momentary pushbuttons between PA4 (decrement),PA5 (increment) and 3.3V
 
-// Connections for elliptical:
-// GND - GND
+// Connections for elliptical/bike:
+// GND--GND
 // PA7--4.7Kohm--rotation detector [the resistor may not be needed]
 // PA7--100Kohm--3.3V
+
+// For direction switch, to tell the device if you're pedaling backwards or forwards
 // PA8 - direction control switch, one side
 // 3.3V - direction control switch, other side
+
+// Connections for Nunchuck
+// GND--GND
+// 3.3V--3.3V
+// PB6--10Kohm--3.3V
+// PB7--10Kohm--3.3V
+// PB6--SCL
+// PB7--SDA
+
+
 
 // Make sure there are 4.7Kohm? pullups for the two i2c data lines
 
