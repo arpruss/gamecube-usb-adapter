@@ -4,6 +4,7 @@
 #ifdef USB_SERIAL
 # define SERIAL_DEBUG
 #endif
+
 #define ENABLE_GAMECUBE
 #define ENABLE_NUNCHUCK
 #define ENABLE_ELLIPTICAL
@@ -231,6 +232,27 @@ const InjectedButton_t dpadArrowWithCTRL[numberOfButtons] = {
     { KEY,   {.key = KEY_UP_ARROW } },           // virtual up
 };
 
+const InjectedButton_t dpadZX[numberOfButtons] = {
+    { KEY, {.key = 'z'} },          // A
+    { KEY, {.key = 'x'} },          // B
+    { KEY, {.key = ' ' } },           // X
+    { KEY, {.key = KEY_BACKSPACE } },           // Y
+    { KEY, {.key = ' ' } },           // Start
+    { KEY, {.key = KEY_LEFT_ARROW } },         // DLeft
+    { KEY, {.key = KEY_RIGHT_ARROW } },         // DRight
+    { KEY, {.key = KEY_DOWN_ARROW  } },         // DDown
+    { KEY, {.key = KEY_UP_ARROW  } },         // DUp
+    { KEY, {.key = '-' } },           // Z
+    { 0,   {.key = 0 } },           // right shoulder button
+    { 0,   {.key = 0 } },           // left shoulder button
+    { 0,   {.key = 0 } },           // right shoulder button partial
+    { 0,   {.key = 0 } },           // left shoulder button partial
+    { KEY,   {.key = KEY_LEFT_ARROW } },           // virtual left
+    { KEY,   {.key = KEY_RIGHT_ARROW } },           // virtual right
+    { KEY,   {.key = KEY_DOWN_ARROW } },           // virtual down
+    { KEY,   {.key = KEY_UP_ARROW } },           // virtual up
+};
+
 const InjectedButton_t dpadArrowWithSpace[numberOfButtons] = {
     { KEY, {.key = ' '} },          // A
     { KEY, {.key = KEY_BACKSPACE} }, // B
@@ -254,7 +276,7 @@ const InjectedButton_t dpadArrowWithSpace[numberOfButtons] = {
 
 const InjectedButton_t dpadQBert[numberOfButtons] = {
     { KEY, {.key = '1'} },          // A
-    { KEY, {.key = '2'} }, // B
+    { KEY, {.key = '2'} },          // B
     { 0,   {.key = 0 } },           // X
     { 0,   {.key = 0 } },           // Y
     { KEY, {.key = '+' } },           // Start
@@ -307,6 +329,7 @@ const Injector_t injectors[] = {
   { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 96 },  
   { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 128 },  
 #endif
+  { dpadZX, NULL, ellipticalSliders, 64 }
 };
 
 #else // SERIAL_DEBUG

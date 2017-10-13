@@ -113,11 +113,11 @@ void setup() {
   iwdg_init(IWDG_PRE_256, watchdogSeconds*156);
 }
 
-uint8_t poorManPWM = 0;
+//uint8_t poorManPWM = 0;
 void updateLED(void) {
   if (((validDevice != DEVICE_NONE) ^ ellipticalRotationDetector) && validUSB) {
-    gpio_write_bit(ledPort, ledPin, poorManPWM);
-    poorManPWM ^= 1;
+    gpio_write_bit(ledPort, ledPin, 0); //poorManPWM);
+    //poorManPWM ^= 1;
   }
   else {
     gpio_write_bit(ledPort, ledPin, 1);
