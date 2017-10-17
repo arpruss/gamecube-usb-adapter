@@ -56,7 +56,6 @@ uint8_t nunchuckDeviceInit() {
 }
 
 uint8_t nunchuckReceiveReport(GameCubeData_t* data) {
-
     MyWire.beginTransmission(i2cAddress);
     MyWire.write(0x00);
     if (0!=MyWire.endTransmission()) 
@@ -97,4 +96,5 @@ uint8_t nunchuckReceiveReport(GameCubeData_t* data) {
 
     return 1;
 }
+
 

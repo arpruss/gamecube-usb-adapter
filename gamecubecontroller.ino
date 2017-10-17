@@ -1,9 +1,9 @@
-// gamecube controller adapter
+  // gamecube controller adapter
 // This requires this branch of the Arduino STM32 board: 
 //    https://github.com/arpruss/Arduino_STM32/tree/addMidiHID
 // Software steps:
 //    Install this bootloader: https://github.com/rogerclarkmelbourne/STM32duino-bootloader/blob/master/binaries/generic_boot20_pb12.bin?raw=true
-//    Instructions here: http://wiki.stm32duino.com/index.php?title=Burning_the_bootloader#Flashing_the_bootloader_onto_the_Black_Pill_via_UART_using_a_Windows_machine//
+//    Instructions here: http://wiki.stm32duino.com/index.php?title=Burning_the_bootloader#Flashing_the_bootloader_onto_the_Black_Pill_via_UART_using_a_Windows_machine/  
 //    Install official Arduino Zero board
 //    Put the contents of the above branch in your Arduino/Hardware folder
 //    If on Windows, run drivers\win\install_drivers.bat
