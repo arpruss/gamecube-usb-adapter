@@ -38,7 +38,7 @@ void toButtonArray(uint8_t* buttons, const GameCubeData_t* data) {
   buttons[virtualShoulderLeftPartial] = data->shoulderLeft>=shoulderThreshold;
   buttons[virtualLeft] = buttons[virtualRight] = buttons[virtualDown] = buttons[virtualUp] = 0;
   buttonizeStick(buttons, data->joystickX, data->joystickY);
-//  buttonizeStick(buttons, data->cX, data->cY); 
+  buttonizeStick(buttons, data->cX, data->cY); 
 }
 
 inline uint16_t remapRange(uint8_t x) {

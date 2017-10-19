@@ -184,8 +184,6 @@ void loop() {
   else {
     t0 = millis();
     do {
-      ellipticalUpdate(&elliptical);
-      
       if (debounceDown.wasReleased()) {
         if (injectionMode == 0)
           injectionMode = numInjectionModes-1;
@@ -207,6 +205,8 @@ void loop() {
     } while((millis()-t0) < 6);
   }
 
+  ellipticalUpdate(&elliptical);
+      
   if (savedInjectionMode != injectionMode && (millis()-lastChangedModeTime) >= saveInjectionModeAfterMillis) {
 #ifdef SERIAL_DEBUG
     Serial.println("Need to store");
@@ -226,12 +226,14 @@ void loop() {
     validUSB = 1;
   }
     // if a disconnection happens at the wrong time
+#else
+  validUSB = 1;
 #endif
 
   receiveReport(&data);
 #ifdef SERIAL_DEBUG
 //  Serial.println("buttons1 = "+String(data.buttons));  
-  Serial.println("joystick = "+String(data.joystickX)+","+String(data.joystickY));  
+//  Serial.println("joystick = "+String(data.joystickX)+","+String(data.joystickY));  
 //  Serial.println("c-stick = "+String(data.cX)+","+String(data.cY));  
 //  Serial.println("shoulders = "+String(data.shoulderLeft)+","+String(data.shoulderRight));      
 #else
