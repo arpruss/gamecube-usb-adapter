@@ -174,7 +174,7 @@ static void EEPROM8_reset(void) {
   }
 }
 
-static void EEPROM8_init(void) {
+void EEPROM8_init(void) {
 #ifdef SERIAL_DEBUG  
   Serial.println("EEPROM8 init");
 #endif
