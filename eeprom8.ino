@@ -9,7 +9,7 @@
 // Note: Flash storage is rated for 10K cycles.
 // There are 5020 half-words (16-bit entities) available per page, making for about 10M cycles.
 // Worst case scenario (and very unrealistic) is when GameCubeController's configuration changes every 15 seconds.
-// This will result in 4.25 years of operation. 
+// This will result in 4.25 years of constant operation. 
 // That should be good enough.
 
 static boolean invalid = true;
