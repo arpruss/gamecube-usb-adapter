@@ -2,11 +2,12 @@
 #include <string.h>
 
 #define SOFT_I2C // currently, HardWire doesn't work well for hotplugging
+                 // Also, it probably won't well with SPI remap
 //#define MANUAL_DECRYPT
 
 #ifdef SOFT_I2C
 #include <SoftWire.h>
-TwoWire MyWire(MY_SCL, MY_SDA, SOFT_STANDARD); 
+TwoWire MyWire(MY_SCL, MY_SDA, SOFT_STANDARD);  
 #else
 #include <Wire.h>
 HardWire MyWire(1, 0); // I2C_FAST_MODE); 

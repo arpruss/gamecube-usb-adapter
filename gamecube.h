@@ -68,7 +68,7 @@ const int numIndicators = sizeof(indicatorLEDs)/sizeof(*indicatorLEDs);
 const uint32_t downButton = PA4;
 const uint32_t upButton = PA5;
 const uint32_t rotationDetector = PA7;
-const uint32_t directionSwitch = PA8;
+const uint32_t directionSwitch = PA8; // TODO: change to PA9 with screen
 
 gpio_dev* const ledPort = GPIOB;
 const uint8_t ledPin = 12;

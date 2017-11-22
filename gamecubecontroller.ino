@@ -43,10 +43,6 @@
 // PB6--SCL
 // PB7--SDA
 
-
-
-// Make sure there are 4.7Kohm? pullups for the two i2c data lines
-
 #include <libmaple/iwdg.h>
 #include <libmaple/usb_cdcacm.h>
 #include <libmaple/usb.h>
@@ -116,7 +112,7 @@ void setup() {
 //uint8_t poorManPWM = 0;
 void updateLED(void) {
   if (((validDevice != DEVICE_NONE) ^ ellipticalRotationDetector) && validUSB) {
-    gpio_write_bit(ledPort, ledPin, 0); //poorManPWM);
+        gpio_write_bit(ledPort, ledPin, 0); //poorManPWM);
     //poorManPWM ^= 1;
   }
   else {
