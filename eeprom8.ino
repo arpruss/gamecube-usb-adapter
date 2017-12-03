@@ -1,6 +1,22 @@
 #include <EEPROM.h>
 #include <flash_stm32.h>
 
+#ifndef EEPROM_PAGE_SIZE
+#define EEPROM_PAGE_SIZE 0x400
+#endif
+
+#ifndef EEPROM_START_ADDRESS  
+#define EEPROM_START_ADDRESS ((uint32)(0x8000000 + 128 * 1024 - 2 * EEPROM_PAGE_SIZE))
+#endif 
+
+#ifndef EEPROM_PAGE0_BASE
+#define EEPROM_PAGE0_BASE   ((uint32)(EEPROM_START_ADDRESS + 0x000))
+#endif
+
+#ifndef EEPROM_PAGE1_BASE
+#define EEPROM_PAGE1_BASE   ((uint32)(EEPROM_START_ADDRESS + EEPROM_PAGE_SIZE))
+#endif
+
 // This is a module that lets you store up to 255 byte-long configuration variables numbered from 0 to 254.
 //
 // The storage method is incompatible with the one implemented by the EEPROM-emulation library, as it's optimized

@@ -1,7 +1,9 @@
 #ifndef _GAMECUBE_H
 #define _GAMECUBE_H
 
-#ifdef USB_SERIAL
+#include <KeyboardMouseJoystick.h>
+
+#ifndef USB_HID_KMJ
 # define SERIAL_DEBUG
 #endif
 

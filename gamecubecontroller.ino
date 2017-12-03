@@ -1,12 +1,12 @@
-  // gamecube controller adapter
-// This requires this branch of the Arduino STM32 board: 
-//    https://github.com/arpruss/Arduino_STM32/tree/addMidiHID
+// This requires this library: 
+//    https://github.com/arpruss/KeyboardMouseJoystick_stm32f1
 // Software steps:
 //    Install this bootloader: https://github.com/rogerclarkmelbourne/STM32duino-bootloader/blob/master/binaries/generic_boot20_pb12.bin?raw=true
 //    Instructions here: http://wiki.stm32duino.com/index.php?title=Burning_the_bootloader#Flashing_the_bootloader_onto_the_Black_Pill_via_UART_using_a_Windows_machine/  
 //    Install official Arduino Zero board
 //    Put the contents of the above branch in your Arduino/Hardware folder
 //    If on Windows, run drivers\win\install_drivers.bat
+//    Install the KeyboardMouseJoystick_stm32f1 library.
 // Note: You may need to adjust permissions on some of the dll, exe and bat files.
 
 // Facing GameCube socket (as on console), flat on top:
@@ -229,7 +229,7 @@ void loop() {
   receiveReport(&data);
 #ifdef SERIAL_DEBUG
 //  Serial.println("buttons1 = "+String(data.buttons));  
-//  Serial.println("joystick = "+String(data.joystickX)+","+String(data.joystickY));  
+  Serial.println("joystick = "+String(data.joystickX)+","+String(data.joystickY));  
 //  Serial.println("c-stick = "+String(data.cX)+","+String(data.cY));  
 //  Serial.println("shoulders = "+String(data.shoulderLeft)+","+String(data.shoulderRight));      
 #else
