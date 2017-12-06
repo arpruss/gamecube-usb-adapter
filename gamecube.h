@@ -151,6 +151,7 @@ void joystickNoShoulder(const GameCubeData_t* data);
 void joystickDualShoulder(const GameCubeData_t* data);
 void joystickUnifiedShoulder(const GameCubeData_t* data);
 void ellipticalSliders(const GameCubeData_t* data, const EllipticalData_t* ellipticalP, int32_t multiplier);
+void directionSwitchSlider(const GameCubeData_t* data, const EllipticalData_t* ellipticalP, int32_t multiplier);
 
 // note: Nunchuck Z maps to A, Nunchuck C maps to B
 const InjectedButton_t defaultJoystickButtons[numberOfButtons] = {
@@ -333,6 +334,7 @@ const Injector_t injectors[] = {
 #ifdef ENABLE_ELLIPTICAL
   { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 96 },  
   { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 128 },  
+  { defaultJoystickButtons, joystickDualShoulder, directionSwitchSlider, 64 },
 #endif
   { dpadZX, NULL, ellipticalSliders, 64 }
 };

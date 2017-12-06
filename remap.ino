@@ -138,6 +138,12 @@ void ellipticalSliders(const GameCubeData_t* data, const EllipticalData_t* ellip
 #endif
 }
 
+void directionSwitchSlider(const GameCubeData_t* data, const EllipticalData_t* ellipticalP, int32_t multiplier) {
+    if (ellipticalP->direction)
+      Joystick.sliderRight(1023);
+  
+}
+
 void joystickUnifiedShoulder(const GameCubeData_t* data) {
     joystickBasic(data);
     joystickPOV(data);
@@ -194,7 +200,6 @@ void inject(const Injector_t* injector, const GameCubeData_t* curDataP, const El
     injector->stick(curDataP);
 
   if (injector->elliptical != NULL)
-    //ellipticalSliders(curDataP, ellipticalP);
     injector->elliptical(curDataP, ellipticalP, injector->ellipticalMultiplier);
 
   if (didJoystick)
