@@ -1,5 +1,5 @@
 // This requires this library: 
-//    https://github.com/arpruss/KeyboardMouseJoystick_stm32f1
+//    https://github.com/arpruss/USBHID_stm32f1
 // Software steps:
 //    Install this bootloader: https://github.com/rogerclarkmelbourne/STM32duino-bootloader/blob/master/binaries/generic_boot20_pb12.bin?raw=true
 //    Instructions here: http://wiki.stm32duino.com/index.php?title=Burning_the_bootloader#Flashing_the_bootloader_onto_the_Black_Pill_via_UART_using_a_Windows_machine/  
@@ -63,6 +63,7 @@ void updateDisplay() {
 }
 
 void setup() {
+  HID.begin(USB_HID_KEYBOARD_MOUSE_JOYSTICK);
   for (int i=0; i<numIndicators; i++)
     pinMode(indicatorLEDs[i], OUTPUT);
   pinMode(downButton, INPUT_PULLDOWN);

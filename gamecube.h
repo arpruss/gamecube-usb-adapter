@@ -1,11 +1,12 @@
 #ifndef _GAMECUBE_H
 #define _GAMECUBE_H
 
-#include <KeyboardMouseJoystick.h>
+#undef SERIAL_DEBUG
 
-#ifndef USB_HID_KMJ
-# define SERIAL_DEBUG
+#ifndef SERIAL_DEBUG
+#include <USBHID.h>
 #endif
+
 
 #define ENABLE_GAMECUBE
 #define ENABLE_NUNCHUCK
