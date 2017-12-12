@@ -108,7 +108,6 @@ class DebounceAnalog : public Debounce {
     
   public:
     bool getRawState(void) {
-      uint16_t value;
       // TODO: go analog
       if (analogRead(pin) >= threshold) 
         return highState;

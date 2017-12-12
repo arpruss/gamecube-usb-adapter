@@ -7,6 +7,7 @@
 #include <USBHID.h>
 #endif
 
+#define FEATURE_REPORT_SIZE 20
 
 #define ENABLE_GAMECUBE
 #define ENABLE_NUNCHUCK
@@ -144,6 +145,7 @@ typedef struct {
   GameCubeDataProcessor_t stick;
   EllipticalProcessor_t elliptical;
   int32_t ellipticalMultiplier; // 64 = default speed ; higher is faster
+  const char* commandName;
 } Injector_t;
 
 #ifndef SERIAL_DEBUG
@@ -324,20 +326,20 @@ const InjectedButton_t dpadMC[numberOfButtons] = {
 };
 
 const Injector_t injectors[] = {
-  { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 64 },
-  { defaultJoystickButtons, joystickDualShoulder, ellipticalSliders, 40 },
-  { jetsetJoystickButtons, joystickNoShoulder, ellipticalSliders, 64 },
-  { dpadWASDButtons, NULL, ellipticalSliders, 64 },
-  { dpadArrowWithCTRL, NULL, ellipticalSliders, 64 },
-  { dpadArrowWithSpace, NULL, ellipticalSliders, 64 },  
-  { dpadQBert, NULL, ellipticalSliders, 64 },  
-  { dpadMC, NULL, ellipticalSliders, 64 },  
+  { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 64, "defaultUnified" },
+  { defaultJoystickButtons, joystickDualShoulder, ellipticalSliders, 40, "defaultDual" },
+  { jetsetJoystickButtons, joystickNoShoulder, ellipticalSliders, 64, "jetset" },
+  { dpadWASDButtons, NULL, ellipticalSliders, 64, "wasd" },
+  { dpadArrowWithCTRL, NULL, ellipticalSliders, 64, "dpadArrowCtrl" },
+  { dpadArrowWithSpace, NULL, ellipticalSliders, 64, "dpadArrowSpace" },  
+  { dpadQBert, NULL, ellipticalSliders, 64, "dpadQBert" },  
+  { dpadMC, NULL, ellipticalSliders, 64, "dpadMC" },  
 #ifdef ENABLE_ELLIPTICAL
-  { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 96 },  
-  { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 128 },  
-  { defaultJoystickButtons, joystickDualShoulder, directionSwitchSlider, 64 },
+  { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 96, "default96" },  
+  { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 128, "default128" },  
+  { defaultJoystickButtons, joystickDualShoulder, directionSwitchSlider, 64, "directionSwitch" },
 #endif
-  { dpadZX, NULL, ellipticalSliders, 64 }
+  { dpadZX, NULL, ellipticalSliders, 64, "dpadZX" }
 };
 
 #else // SERIAL_DEBUG

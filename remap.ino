@@ -203,7 +203,7 @@ void inject(const Injector_t* injector, const GameCubeData_t* curDataP, const El
     injector->elliptical(curDataP, ellipticalP, injector->ellipticalMultiplier);
 
   if (didJoystick)
-    Joystick.sendManualReport();
+    Joystick.send();
 
 }
 
