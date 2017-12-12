@@ -3,8 +3,10 @@
 
 #undef SERIAL_DEBUG
 
-#ifndef SERIAL_DEBUG
 #include <USBHID.h>
+
+#ifdef SERIAL_DEBUG
+# define Serial CompositeSerial
 #endif
 
 #define FEATURE_REPORT_SIZE 20
