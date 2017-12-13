@@ -71,11 +71,11 @@ const uint8_t reportDescription[] = {
 
 uint8_t featureReport[FEATURE_REPORT_SIZE+1];
 volatile uint8_t featureBuffer[FEATURE_REPORT_SIZE+1];
-volatile HIDFeatureBuffer_t fb = { featureBuffer, sizeof(featureBuffer), USB_HID_JOYSTICK_REPORT_ID };
+volatile HIDBuffer_t fb = { featureBuffer, sizeof(featureBuffer), USB_HID_JOYSTICK_REPORT_ID };
 
 void setup() {
   HID.begin(reportDescription,sizeof(reportDescription));
-  HID.setFeatureBuffers(&fb, 1);
+  HID.setBuffers(HID_REPORT_TYPE_FEATURE, &fb, 1);
   for (int i=0; i<numIndicators; i++)
     pinMode(indicatorLEDs[i], OUTPUT);
   pinMode(downButton, INPUT_PULLDOWN);
