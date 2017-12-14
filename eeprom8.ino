@@ -59,9 +59,11 @@ static bool erasePage(uint32_t base) {
   return success && EEPROM8_MAGIC == GET_WORD(base);
 }
 
+/*
 static bool erasePages() {
   return erasePage(EEPROM_PAGE0_BASE) && erasePage(EEPROM_PAGE1_BASE);
 }
+*/
 
 uint8_t EEPROM8_getValue(uint8_t variable) {
   if (invalid)

@@ -139,6 +139,7 @@ void ellipticalSliders(const GameCubeData_t* data, const EllipticalData_t* ellip
 }
 
 void directionSwitchSlider(const GameCubeData_t* data, const EllipticalData_t* ellipticalP, int32_t multiplier) {
+    (void)multiplier;
     if (ellipticalP->direction)
       Joystick.sliderRight(1023);
   

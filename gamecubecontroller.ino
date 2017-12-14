@@ -70,8 +70,8 @@ const uint8_t reportDescription[] = {
 };
 
 uint8_t featureReport[FEATURE_REPORT_SIZE+1];
-volatile uint8_t featureBuffer[FEATURE_REPORT_SIZE+1];
-volatile HIDBuffer_t fb = { featureBuffer, sizeof(featureBuffer), USB_HID_JOYSTICK_REPORT_ID };
+volatile uint8_t featureBuffer[HID_DATA_BUFFER_SIZE(FEATURE_REPORT_SIZE+1)];
+volatile HIDBuffer_t fb = { featureBuffer, FEATURE_REPORT_SIZE+1, USB_HID_JOYSTICK_REPORT_ID };
 
 void setup() {
   HID.begin(reportDescription,sizeof(reportDescription));
