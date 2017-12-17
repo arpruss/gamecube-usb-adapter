@@ -60,18 +60,19 @@ void displayNumber(uint8_t x) {
 
 void updateDisplay() {
   displayNumber(numInjectionModes >= 16 ? injectionMode : injectionMode+1);
+  Joystick.setFeature((uint8*)injectors[injectionMode].commandName);
 }
 
 const uint8_t reportDescription[] = {
    HID_MOUSE_REPORT_DESCRIPTOR(),
    HID_KEYBOARD_REPORT_DESCRIPTOR(),
    HID_JOYSTICK_REPORT_DESCRIPTOR(HID_JOYSTICK_REPORT_ID, 
-        HID_FEATURE_REPORT_DESCRIPTOR(FEATURE_REPORT_SIZE)),
+        HID_FEATURE_REPORT_DESCRIPTOR(FEATURE_DATA_SIZE)),
 };
 
-uint8_t featureReport[FEATURE_REPORT_SIZE];
-uint8_t featureBuffer[HID_BUFFER_ALLOCATE_SIZE(FEATURE_REPORT_SIZE,1)];
-volatile HIDBuffer_t fb { featureBuffer, HID_BUFFER_SIZE(FEATURE_REPORT_SIZE,1), HID_JOYSTICK_REPORT_ID };
+uint8_t featureReport[FEATURE_DATA_SIZE];
+uint8_t featureBuffer[HID_BUFFER_ALLOCATE_SIZE(FEATURE_DATA_SIZE,1)];
+volatile HIDBuffer_t fb { featureBuffer, HID_BUFFER_SIZE(FEATURE_DATA_SIZE,1), HID_JOYSTICK_REPORT_ID };
 
 void setup() {
   USB.begin(reportDescription,sizeof(reportDescription));
@@ -215,8 +216,10 @@ void loop() {
   }
 
   if (Joystick.getFeature(featureReport) && 0==strncmp((char*)featureReport, "m=", 2)) {
+    Joystick.setFeature((uint8*)"abc");
+    CompositeSerial.println((const char*)featureReport);
     for (int i=0; i < numInjectionModes; i++) {
-      if (0==strncmp((char*)featureReport+2, injectors[i].commandName, FEATURE_REPORT_SIZE-2)) {
+      if (0==strncmp((char*)featureReport+2, injectors[i].commandName, FEATURE_DATA_SIZE-2)) {
         injectionMode = i;
         lastChangedModeTime = millis();
         updateDisplay();

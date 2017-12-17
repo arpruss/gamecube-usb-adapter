@@ -9,7 +9,7 @@
 # define Serial CompositeSerial
 #endif
 
-#define FEATURE_REPORT_SIZE 20
+#define FEATURE_DATA_SIZE 20
 
 #define ENABLE_GAMECUBE
 #define ENABLE_NUNCHUCK
