@@ -63,19 +63,19 @@ void updateDisplay() {
 }
 
 const uint8_t reportDescription[] = {
-   USB_HID_MOUSE_REPORT_DESCRIPTOR(USB_HID_MOUSE_REPORT_ID),
-   USB_HID_KEYBOARD_REPORT_DESCRIPTOR(USB_HID_KEYBOARD_REPORT_ID),
-   USB_HID_JOYSTICK_REPORT_DESCRIPTOR(USB_HID_JOYSTICK_REPORT_ID, 
-        USB_HID_FEATURE_REPORT_DESCRIPTOR(FEATURE_REPORT_SIZE)),
+   HID_MOUSE_REPORT_DESCRIPTOR(),
+   HID_KEYBOARD_REPORT_DESCRIPTOR(),
+   HID_JOYSTICK_REPORT_DESCRIPTOR(HID_JOYSTICK_REPORT_ID, 
+        HID_FEATURE_REPORT_DESCRIPTOR(FEATURE_REPORT_SIZE)),
 };
 
 uint8_t featureReport[FEATURE_REPORT_SIZE];
 uint8_t featureBuffer[HID_BUFFER_ALLOCATE_SIZE(FEATURE_REPORT_SIZE,1)];
-volatile HIDBuffer_t fb { featureBuffer, HID_BUFFER_SIZE(FEATURE_REPORT_SIZE,1), USB_HID_JOYSTICK_REPORT_ID };
+volatile HIDBuffer_t fb { featureBuffer, HID_BUFFER_SIZE(FEATURE_REPORT_SIZE,1), HID_JOYSTICK_REPORT_ID };
 
 void setup() {
-  HID.begin(reportDescription,sizeof(reportDescription));
-  HID.setBuffers(HID_REPORT_TYPE_FEATURE, &fb, 1);
+  USB.begin(reportDescription,sizeof(reportDescription));
+  USB.setBuffers(HID_REPORT_TYPE_FEATURE, &fb, 1);
   for (int i=0; i<numIndicators; i++)
     pinMode(indicatorLEDs[i], OUTPUT);
   pinMode(downButton, INPUT_PULLDOWN);
