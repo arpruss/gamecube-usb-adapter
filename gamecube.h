@@ -9,11 +9,11 @@
 # define Serial CompositeSerial
 #endif
 
-#define FEATURE_DATA_SIZE 20
+#define FEATURE_DATA_SIZE 63
 
 #define ENABLE_GAMECUBE
 #define ENABLE_NUNCHUCK
-#define ENABLE_ELLIPTICAL
+//#define ENABLE_ELLIPTICAL
 
 #define EEPROM_VARIABLE_INJECTION_MODE 0
 #define DEVICE_NONE     0
@@ -148,6 +148,7 @@ typedef struct {
   EllipticalProcessor_t elliptical;
   int32_t ellipticalMultiplier; // 64 = default speed ; higher is faster
   const char* commandName;
+  const char* description; // no more than 61 characters
 } Injector_t;
 
 #ifndef SERIAL_DEBUG
@@ -328,20 +329,20 @@ const InjectedButton_t dpadMC[numberOfButtons] = {
 };
 
 const Injector_t injectors[] = {
-  { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 64, "defaultUnified" },
-  { defaultJoystickButtons, joystickDualShoulder, ellipticalSliders, 40, "defaultDual" },
-  { jetsetJoystickButtons, joystickNoShoulder, ellipticalSliders, 64, "jetset" },
-  { dpadWASDButtons, NULL, ellipticalSliders, 64, "wasd" },
-  { dpadArrowWithCTRL, NULL, ellipticalSliders, 64, "dpadArrowCtrl" },
-  { dpadArrowWithSpace, NULL, ellipticalSliders, 64, "dpadArrowSpace" },  
-  { dpadQBert, NULL, ellipticalSliders, 64, "dpadQBert" },  
-  { dpadMC, NULL, ellipticalSliders, 64, "dpadMC" },  
+  { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 64, "defaultUnified", "joystick, unified shoulder, speed 100%" },
+  { defaultJoystickButtons, joystickDualShoulder, ellipticalSliders, 40, "defaultDual", "joystick, dual shoulders, speed 63%" },
+  { jetsetJoystickButtons, joystickNoShoulder, ellipticalSliders, 64, "jetset", "Jet Set Radio" },
+  { dpadWASDButtons, NULL, ellipticalSliders, 64, "wasd", "WASD" },
+  { dpadArrowWithCTRL, NULL, ellipticalSliders, 64, "dpadArrowCtrl", "Arrow keys with A=CTRL" },
+  { dpadArrowWithSpace, NULL, ellipticalSliders, 64, "dpadArrowSpace", "Arrow keys with A=SPACE" },  
+  { dpadQBert, NULL, ellipticalSliders, 64, "dpadQBert", "QBert with dpad" },  
+  { dpadMC, NULL, ellipticalSliders, 64, "dpadMC", "Minecraft with dpad" },  
 #ifdef ENABLE_ELLIPTICAL
-  { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 96, "default96" },  
-  { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 128, "default128" },  
-  { defaultJoystickButtons, joystickDualShoulder, directionSwitchSlider, 64, "directionSwitch" },
+  { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 96, "default96", "joystick, unified shoulder, speed 150%" },  
+  { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 128, "default128", "joystick, unified shoulder, speed 200%" },  
+  { defaultJoystickButtons, joystickDualShoulder, directionSwitchSlider, 64, "directionSwitch", "joystick, direction switch controls sliders" },
 #endif
-  { dpadZX, NULL, ellipticalSliders, 64, "dpadZX" }
+  { dpadZX, NULL, ellipticalSliders, 64, "dpadZX", "Arrow keys with A=Z, B=X" }
 };
 
 #else // SERIAL_DEBUG

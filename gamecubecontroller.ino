@@ -43,6 +43,7 @@
 // PB6--SCL
 // PB7--SDA
 
+#include <stdlib.h>
 #include <libmaple/iwdg.h>
 #include <libmaple/usb_cdcacm.h>
 #include <libmaple/usb.h>
@@ -60,14 +61,13 @@ void displayNumber(uint8_t x) {
 
 void updateDisplay() {
   displayNumber(numInjectionModes >= 16 ? injectionMode : injectionMode+1);
-  Joystick.setFeature((uint8*)injectors[injectionMode].commandName);
 }
 
 const uint8_t reportDescription[] = {
    HID_MOUSE_REPORT_DESCRIPTOR(),
    HID_KEYBOARD_REPORT_DESCRIPTOR(),
    HID_JOYSTICK_REPORT_DESCRIPTOR(HID_JOYSTICK_REPORT_ID, 
-        HID_FEATURE_REPORT_DESCRIPTOR(FEATURE_DATA_SIZE)),
+        HID_FEATURE_REPORT_DESCRIPTOR(FEATURE_DATA_SIZE))
 };
 
 uint8_t featureReport[FEATURE_DATA_SIZE];
@@ -172,6 +172,76 @@ uint8_t receiveReport(GameCubeData_t* data) {
   return 0;
 }
 
+void setFeature(const void* s) {
+  strcpy((char*)featureReport, (const char*)s);
+  Joystick.setFeature(featureReport);
+}
+
+void intToString(char* buf, int a) {
+  if (a==0) {
+    *buf++ = '0'; 
+  }
+  else {
+    if (a<0) {
+      *buf++ = '-';
+      a = -a;
+    }
+    int place = 1;
+    while(place * 10 > place && a / place > 0) {
+      place *= 10;
+    }
+    if (a/place == 0) 
+      place /= 10;
+    do {
+      int d = a/place;
+      *buf++ = '0' + d;
+      a -= d*place;
+      place /= 10;
+    } while(place>0);
+  }
+  *buf = 0;
+}
+
+void pollFeatureRequests() {
+  if (Joystick.getFeature(featureReport)) {
+    if (0==strcmp((char*)featureReport, "id?")) {
+      setFeature("id=GameCubeControllerAdapter");
+    }
+    else if (0==strcmp((char*)featureReport, "m?") || 0==strcmp((char*)featureReport, "M?")) {
+      featureReport[1] = '=';
+      strcpy((char*)featureReport+2,featureReport[0]=='m' ? injectors[injectionMode].commandName : injectors[injectionMode].description);
+      setFeature(featureReport);
+    }
+    else if (0==strncmp((char*)featureReport, "m:", 2) || 0==strncmp((char*)featureReport, "M:", 2)) {
+      for (int i=0; i < numInjectionModes; i++) {
+        if (0==strncmp((char*)featureReport+2, featureReport[0]=='m' ? injectors[i].commandName : injectors[i].description, FEATURE_DATA_SIZE-2)) {
+          injectionMode = i;
+          lastChangedModeTime = millis();
+          updateDisplay();
+          break;
+        }
+      }
+    }
+    else if (0==strcmp((char*)featureReport, "modes?")) {
+      strcpy((char*)featureReport, "modes=");
+      intToString((char*)featureReport+6, numInjectionModes);
+      setFeature(featureReport);
+    }
+    else if ((featureReport[0] == 'm' || featureReport[0] == 'M') && isdigit(featureReport[1]) && featureReport[strlen((char*)featureReport)-1]=='?') {
+      unsigned n = atoi((char*)featureReport+1);
+      intToString((char*)featureReport+1, n);
+      strcat((char*)featureReport, "=");
+      if (n<numInjectionModes) {
+        strcat((char*)featureReport, featureReport[0] == 'm' ? injectors[n].commandName : injectors[n].description);
+      }
+      setFeature(featureReport);
+    }
+    else {
+      setFeature("");
+    }
+  }
+}
+
 void loop() {
   GameCubeData_t data;
   EllipticalData_t elliptical;
@@ -215,18 +285,7 @@ void loop() {
     } while((millis()-t0) < 6);
   }
 
-  if (Joystick.getFeature(featureReport) && 0==strncmp((char*)featureReport, "m=", 2)) {
-    Joystick.setFeature((uint8*)"abc");
-    CompositeSerial.println((const char*)featureReport);
-    for (int i=0; i < numInjectionModes; i++) {
-      if (0==strncmp((char*)featureReport+2, injectors[i].commandName, FEATURE_DATA_SIZE-2)) {
-        injectionMode = i;
-        lastChangedModeTime = millis();
-        updateDisplay();
-        break;
-      }
-    }
-  }
+  pollFeatureRequests();
 
   ellipticalUpdate(&elliptical);
       
