@@ -53,3 +53,36 @@ def query(command):
 if len(argv)>1:
     sendCommand("m:"+argv[1])
     print("Mode set to: "+query("M"))
+else:
+    from tkinter import *
+    
+    root = Tk()
+
+    option = Listbox(root,selectmode=SINGLE)
+    option.config(width=0)
+    option.pack()
+    
+    current = query("M")
+
+    i = 0
+    while True:
+        n = query("M"+str(i))
+        if n is None or n == "":
+            break
+        option.insert(END, n)
+        if n == current:
+            option.select_set(i)
+            option.activate(i)
+        i+=1
+
+    #
+    # test stuff
+
+    def ok():
+        sendCommand("M:"+option.get(ACTIVE))
+        root.quit()
+
+    button = Button(root, text="OK", command=ok)
+    button.pack()
+
+    mainloop()
