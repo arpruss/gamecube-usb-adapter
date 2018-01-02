@@ -1,6 +1,11 @@
-from pywinusb import hid
+from sys import argv,exit
+
+try:
+    from pywinusb import hid
+except ImportError:
+    exit("You need pywinusb. Run python -m pip install pywinusb")
+    
 from time import sleep,time
-from sys import argv
 
 TIMEOUT = 1
 REPORT_ID = 20
