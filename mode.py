@@ -7,21 +7,6 @@ REPORT_ID = 20
 REPORT_SIZE = 63
 HID_REPORT_FEATURE = 3
 
-device = hid.HidDeviceFilter(vendor_id = 0x1EAF, product_id = 0x0004).get_devices()[0]
-print(device)
-device.open()
-
-#def dataHandler(data):
-#    if data[0] == HID_REPORT_FEATURE:
-#        print(data)
-
-myReport = None
-for report in device.find_feature_reports():
-    if report.report_id == REPORT_ID and report.report_type == "Feature":
-        myReport = report
-        break
-        
-assert myReport is not None
 
 def sendCommand(command):
     data = [REPORT_ID] + list(map(ord, command))
@@ -50,9 +35,39 @@ def query(command):
             lastSent = time()
     return None
 
+msg = False
+
+myReport = None
+
+while myReport is None:
+    
+    for d in hid.HidDeviceFilter(vendor_id = 0x1EAF).get_devices():
+        device = d
+        device.open()
+
+        for report in device.find_feature_reports():
+            if report.report_id == REPORT_ID and report.report_type == "Feature":
+                myReport = report
+                break
+                    
+        if myReport is not None and query("id"):
+            break
+        
+        myReport = None
+        device.close()
+    
+    if myReport is None and not msg:
+        print("Plug device in (or press ctrl-c to exit)")
+        msg = True
+    
+    sleep(0.25)
+    
+print(device)    
+                
 if len(argv)>1:
     sendCommand("m:"+argv[1])
     print("Mode set to: "+query("M"))
+    device.close()
 else:
     from tkinter import *
     
@@ -80,9 +95,11 @@ else:
 
     def ok():
         sendCommand("M:"+option.get(ACTIVE))
+        device.close()
         root.quit()
 
     button = Button(root, text="OK", command=ok)
     button.pack()
 
     mainloop()
+        
