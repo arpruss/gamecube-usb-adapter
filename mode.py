@@ -39,8 +39,7 @@ msg = False
 
 myReport = None
 
-while myReport is None:
-    
+while myReport is None:    
     for d in hid.HidDeviceFilter(vendor_id = 0x1EAF).get_devices():
         device = d
         device.open()
@@ -50,7 +49,11 @@ while myReport is None:
                 myReport = report
                 break
                     
-        if myReport is not None and query("id"):
+        if myReport is not None:
+            id = query("id")
+            if id:
+                print(device)
+                print(id)
             break
         
         myReport = None
@@ -62,8 +65,6 @@ while myReport is None:
     
     sleep(0.25)
     
-print(device)    
-                
 if len(argv)>1:
     sendCommand("m:"+argv[1])
     print("Mode set to: "+query("M"))
