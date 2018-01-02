@@ -69,9 +69,13 @@ if len(argv)>1:
     print("Mode set to: "+query("M"))
     device.close()
 else:
-    from tkinter import *
+    try:
+        from tkinter import * 
+    except ImportError:
+        from Tkinter import *
     
     root = Tk()
+    root.title("Mode")
 
     option = Listbox(root,selectmode=SINGLE)
     option.config(width=0)
@@ -79,6 +83,7 @@ else:
     
     current = query("M")
 
+    selection = 0
     i = 0
     while True:
         n = query("M"+str(i))
@@ -88,18 +93,52 @@ else:
         if n == current:
             option.select_set(i)
             option.activate(i)
+            selection = i
         i+=1
 
-    #
-    # test stuff
-
-    def ok():
-        sendCommand("M:"+option.get(ACTIVE))
+    def up(_):
+        global selection
+        if selection > 0:
+            option.select_clear(selection)
+            selection -= 1
+            option.select_set(selection)
+            option.activate(selection)
+            
+    def down(_):
+        global selection
+        if selection < option.size():
+            option.select_clear(selection)
+            selection += 1
+            option.select_set(selection)
+            option.activate(selection)
+            
+    def ok(*args):
+        opt = option.get(ACTIVE)
+        sendCommand("M:"+opt)
+        if query("M") != opt:
+            print("Error setting mode")
+        else:
+            print("Set to: "+opt)
+        device.close()
+        root.quit()
+        
+    def cancel(*args):
         device.close()
         root.quit()
 
+    root.bind("<Down>", down)
+    root.bind("<Up>", up)
+    root.bind("<Return>", ok)
+    root.bind("<Escape>", cancel)
+        
+    bottom = Frame(root)
+    bottom.pack()
+
     button = Button(root, text="OK", command=ok)
-    button.pack()
+    button.pack(in_=bottom,side=LEFT)
+    button2 = Button(root, text="Cancel", command=cancel)
+    button2.pack()
+    button2.pack(in_=bottom,side=RIGHT)
 
     mainloop()
         
