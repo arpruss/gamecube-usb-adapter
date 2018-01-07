@@ -75,7 +75,12 @@ uint8_t featureBuffer[HID_BUFFER_ALLOCATE_SIZE(FEATURE_DATA_SIZE,1)];
 volatile HIDBuffer_t fb { featureBuffer, HID_BUFFER_SIZE(FEATURE_DATA_SIZE,1), HID_JOYSTICK_REPORT_ID };
 
 void setup() {
-  USBHID.begin(reportDescription,sizeof(reportDescription),0x1EAF,0x0024);
+#ifdef SERIAL_DEBUG
+  USBHID.setSerial(1);
+#else
+  USBHID.setSerial(0);
+#endif  
+  USBHID.begin(reportDescription,sizeof(reportDescription));
   USBHID.setBuffers(HID_REPORT_TYPE_FEATURE, &fb, 1);
   for (int i=0; i<numIndicators; i++)
     pinMode(indicatorLEDs[i], OUTPUT);
@@ -83,7 +88,6 @@ void setup() {
   pinMode(upButton, INPUT_PULLDOWN);
   
 #ifdef SERIAL_DEBUG
-  Serial.begin(115200);
   displayNumber(3);
   delay(4000);
   Serial.println("gamecube controller adapter");
