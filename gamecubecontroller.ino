@@ -75,7 +75,7 @@ uint8_t featureBuffer[HID_BUFFER_ALLOCATE_SIZE(FEATURE_DATA_SIZE,1)];
 volatile HIDBuffer_t fb { featureBuffer, HID_BUFFER_SIZE(FEATURE_DATA_SIZE,1), HID_JOYSTICK_REPORT_ID };
 
 void setup() {
-  USBHID.begin(reportDescription,sizeof(reportDescription));
+  USBHID.begin(reportDescription,sizeof(reportDescription),0x1EAF,0x0024);
   USBHID.setBuffers(HID_REPORT_TYPE_FEATURE, &fb, 1);
   for (int i=0; i<numIndicators; i++)
     pinMode(indicatorLEDs[i], OUTPUT);

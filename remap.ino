@@ -50,7 +50,7 @@ void joystickBasic(const GameCubeData_t* data) {
     Joystick.X(remapRange(data->joystickX));
     Joystick.Y(remapRange(255-data->joystickY));
     Joystick.Xrotate(remapRange(data->cX));
-    Joystick.Yrotate(remapRange(data->cY));
+    Joystick.Yrotate(remapRange(255-data->cY));
 }
 
 void joystickPOV(const GameCubeData_t* data) {
