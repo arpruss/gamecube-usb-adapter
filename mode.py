@@ -46,6 +46,7 @@ myReport = None
 
 while myReport is None:    
     for d in hid.HidDeviceFilter(vendor_id = 0x1EAF).get_devices():
+        print(d)
         device = d
         device.open()
 
