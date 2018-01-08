@@ -222,15 +222,18 @@ void joystickNoShoulder(const GameCubeData_t* data) {
 
 void inject(const Injector_t* injector, const GameCubeData_t* curDataP, const EllipticalData_t* ellipticalP) {
   didJoystick = false;
+  didX360 = false;
 
   if (currentUSBMode != injector->usbMode) {
     if (lastChangedModeTime + 1000 <= millis()) {
       if (currentUSBMode == &USBHID) 
         USBHID.end();
-      else if (currentUSBMode == &XBox360)
+      else if (currentUSBMode == &XBox360) 
         XBox360.end();
-      if (injector->usbMode == &USBHID)
-        beginUSBHID();
+      
+      delay(100);
+      if (injector->usbMode == &USBHID) 
+        beginUSBHID();    
       else if (injector->usbMode == &XBox360)
         beginX360();
       currentUSBMode = injector->usbMode;
@@ -297,7 +300,7 @@ void inject(const Injector_t* injector, const GameCubeData_t* curDataP, const El
     Joystick.send();
 
   if (didX360)
-    XBox360.send();
+    XBox360.send(); 
 }
 
 #endif
