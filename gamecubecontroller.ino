@@ -74,7 +74,7 @@ uint8_t featureReport[FEATURE_DATA_SIZE];
 uint8_t featureBuffer[HID_BUFFER_ALLOCATE_SIZE(FEATURE_DATA_SIZE,1)];
 volatile HIDBuffer_t fb { featureBuffer, HID_BUFFER_SIZE(FEATURE_DATA_SIZE,1), HID_JOYSTICK_REPORT_ID };
 
-void setup() {
+void beginUSBHID() {
 #ifdef SERIAL_DEBUG
   USBHID.setSerial(1);
 #else
@@ -82,6 +82,18 @@ void setup() {
 #endif  
   USBHID.begin(reportDescription,sizeof(reportDescription));
   USBHID.setBuffers(HID_REPORT_TYPE_FEATURE, &fb, 1);
+  Joystick.setManualReportMode(true);
+  delay(500);
+}
+
+void beginX360() {
+  XBox360.begin();
+  XBox360.setManualReportMode(true);
+  delay(500);
+}
+
+
+void setup() {
   for (int i=0; i<numIndicators; i++)
     pinMode(indicatorLEDs[i], OUTPUT);
   pinMode(downButton, INPUT_PULLDOWN);
@@ -91,8 +103,6 @@ void setup() {
   displayNumber(3);
   delay(4000);
   Serial.println("gamecube controller adapter");
-#else
-  Joystick.setManualReportMode(true);
 #endif
 
   ellipticalInit();
@@ -120,6 +130,13 @@ void setup() {
     injectionMode = 0;
 
   savedInjectionMode = injectionMode;
+
+  if (injectors[injectionMode].usbMode == &USBHID) {
+    beginUSBHID();
+  }
+  else if (injectors[injectionMode].usbMode == &XBox360) {
+    beginX360();
+  }
   
   updateDisplay();
 

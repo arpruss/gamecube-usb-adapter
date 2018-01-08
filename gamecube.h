@@ -4,6 +4,7 @@
 #undef SERIAL_DEBUG
 
 #include <USBHID.h>
+#include <XBox360.h>
 
 #ifdef SERIAL_DEBUG
 # define Serial CompositeSerial
@@ -54,9 +55,11 @@ uint8_t gameCubeReceiveBits(void* data0, uint32_t bits);
 uint8_t gameCubeReceiveReport(GameCubeData_t* data, uint8_t rumble);
 uint8_t gameCubeReceiveReport(GameCubeData_t* data);
 void updateLED(void);
+void beginUSBHID();
 
 uint8_t loadInjectionMode(void);
 void saveInjectionMode(uint8_t mode);
+void* currentUSBMode = &USBHID;
 
 uint8_t validDevice = DEVICE_NONE;
 uint8_t validUSB = 0;
@@ -143,6 +146,7 @@ typedef struct {
 } InjectedButton_t;
 
 typedef struct {
+  void* usbMode;
   InjectedButton_t const * buttons;
   GameCubeDataProcessor_t stick;
   EllipticalProcessor_t elliptical;
@@ -151,7 +155,6 @@ typedef struct {
   const char* description; // no more than 61 characters
 } Injector_t;
 
-#ifndef SERIAL_DEBUG
 
 void joystickNoShoulder(const GameCubeData_t* data);
 void joystickDualShoulder(const GameCubeData_t* data);
@@ -171,6 +174,28 @@ const InjectedButton_t defaultJoystickButtons[numberOfButtons] = {
     { 0,   {.key = 0 } },             // DDown
     { 0,   {.key = 0 } },             // DUp
     { JOY, {.button = 6 } },          // Z
+    { 0, {.key = 0 } }, //{ JOY, {.button = 8 } },           // right shoulder button
+    { 0, {.key = 0 } }, //{ JOY, {.button = 7 } },           // left shoulder button
+    { 0,   {.key = 0 } },           // right shoulder button partial
+    { 0,   {.key = 0 } },           // left shoulder button partial
+    { 0,   {.key = 0 } },           // virtual left
+    { 0,   {.key = 0 } },           // virtual right
+    { 0,   {.key = 0 } },           // virtual down
+    { 0,   {.key = 0 } },           // virtual up
+};
+
+// unsupported: XBox back, XBox left bumper, XBox button, stick buttons
+const InjectedButton_t defaultXBoxButtons[numberOfButtons] = {
+    { JOY, {.button = 13} },           // A
+    { JOY, {.button = 14} },           // B
+    { JOY, {.button = 15} },           // X
+    { JOY, {.button = 16} },           // Y
+    { JOY, {.button = 5} },           // Start 
+    { JOY,   {.button = 3 } },             // DLeft
+    { JOY,   {.button = 4 } },             // DRight
+    { JOY,   {.button = 2 } },             // DDown
+    { JOY,   {.button = 1 } },             // DUp
+    { JOY, {.button = 10 } },          // Z
     { 0, {.key = 0 } }, //{ JOY, {.button = 8 } },           // right shoulder button
     { 0, {.key = 0 } }, //{ JOY, {.button = 7 } },           // left shoulder button
     { 0,   {.key = 0 } },           // right shoulder button partial
@@ -329,25 +354,23 @@ const InjectedButton_t dpadMC[numberOfButtons] = {
 };
 
 const Injector_t injectors[] = {
-  { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 64, "defaultUnified", "joystick, unified shoulder, speed 100%" },
-  { defaultJoystickButtons, joystickDualShoulder, ellipticalSliders, 40, "defaultDual", "joystick, dual shoulders, speed 63%" },
-  { jetsetJoystickButtons, joystickNoShoulder, ellipticalSliders, 64, "jetset", "Jet Set Radio" },
-  { dpadWASDButtons, NULL, ellipticalSliders, 64, "wasd", "WASD" },
-  { dpadArrowWithCTRL, NULL, ellipticalSliders, 64, "dpadArrowCtrl", "Arrow keys with A=CTRL" },
-  { dpadArrowWithSpace, NULL, ellipticalSliders, 64, "dpadArrowSpace", "Arrow keys with A=SPACE" },  
-  { dpadQBert, NULL, ellipticalSliders, 64, "dpadQBert", "QBert with dpad" },  
-  { dpadMC, NULL, ellipticalSliders, 64, "dpadMC", "Minecraft with dpad" },  
+  { &USBHID, defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 64, "defaultUnified", "joystick, unified shoulder, speed 100%" },
+  { &USBHID, defaultJoystickButtons, joystickDualShoulder, ellipticalSliders, 40, "defaultDual", "joystick, dual shoulders, speed 63%" },
+  { &USBHID, jetsetJoystickButtons, joystickNoShoulder, ellipticalSliders, 64, "jetset", "Jet Set Radio" },
+  { &USBHID, dpadWASDButtons, NULL, ellipticalSliders, 64, "wasd", "WASD" },
+  { &USBHID, dpadArrowWithCTRL, NULL, ellipticalSliders, 64, "dpadArrowCtrl", "Arrow keys with A=CTRL" },
+  { &USBHID, dpadArrowWithSpace, NULL, ellipticalSliders, 64, "dpadArrowSpace", "Arrow keys with A=SPACE" },  
+  { &USBHID, dpadQBert, NULL, ellipticalSliders, 64, "dpadQBert", "QBert with dpad" },  
+  { &USBHID, dpadMC, NULL, ellipticalSliders, 64, "dpadMC", "Minecraft with dpad" },  
 #ifdef ENABLE_ELLIPTICAL
-  { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 96, "default96", "joystick, unified shoulder, speed 150%" },  
-  { defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 128, "default128", "joystick, unified shoulder, speed 200%" },  
-  { defaultJoystickButtons, joystickDualShoulder, directionSwitchSlider, 64, "directionSwitch", "joystick, direction switch controls sliders" },
+  { &USBHID, defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 96, "default96", "joystick, unified shoulder, speed 150%" },  
+  { &USBHID, defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 128, "default128", "joystick, unified shoulder, speed 200%" },  
+  { &USBHID, defaultJoystickButtons, joystickDualShoulder, directionSwitchSlider, 64, "directionSwitch", "joystick, direction switch controls sliders" },
 #endif
-  { dpadZX, NULL, ellipticalSliders, 64, "dpadZX", "Arrow keys with A=Z, B=X" }
+  { &USBHID, dpadZX, NULL, ellipticalSliders, 64, "dpadZX", "Arrow keys with A=Z, B=X" },
+  { &XBox360, defaultXBoxButtons, joystickDualShoulder, ellipticalSliders, 64, "xbox360", "XBox360, speed 100%" }
 };
 
-#else // SERIAL_DEBUG
-const Injector_t injectors[] = { {NULL,NULL},{NULL,NULL},{NULL,NULL},{NULL,NULL},{NULL,NULL},{NULL,NULL},{NULL,NULL},{NULL,NULL} };
-#endif
 
 const uint32_t numInjectionModes = sizeof(injectors)/sizeof(*injectors);
 
