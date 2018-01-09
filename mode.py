@@ -14,6 +14,7 @@ HID_REPORT_FEATURE = 3
 
 
 def sendCommand(command):
+    print(command)
     data = [REPORT_ID] + list(map(ord, command))
     data += [0 for i in range(REPORT_SIZE+1-len(data))]
     myReport.set_raw_data(data)
