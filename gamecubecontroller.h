@@ -14,7 +14,7 @@
 
 #define ENABLE_GAMECUBE
 #define ENABLE_NUNCHUCK
-#define ENABLE_ELLIPTICAL
+//#define ENABLE_EXERCISE_MACHINE
 
 #define EEPROM_VARIABLE_INJECTION_MODE 0
 #define DEVICE_NONE     0
@@ -41,10 +41,10 @@ typedef struct {
   int32_t speed;
   uint8_t direction;
   uint8_t valid;
-} EllipticalData_t;
+} ExerciseMachineData_t;
 
-void ellipticalUpdate(EllipticalData_t* data);
-void ellipticalInit(void);
+void exerciseMachineUpdate(ExerciseMachineData_t* data);
+void exerciseMachineInit(void);
 
 void nunchuckInit(void);
 uint8_t nunchuckReceiveReport(GameCubeData_t* data);
@@ -63,7 +63,7 @@ void* currentUSBMode = &USBHID;
 
 uint8_t validDevice = DEVICE_NONE;
 uint8_t validUSB = 0;
-uint8_t ellipticalRotationDetector = 0;
+uint8_t exerciseMachineRotationDetector = 0;
  
 const uint32_t watchdogSeconds = 10;
 
@@ -129,7 +129,7 @@ const int numberOfButtons = numberOfHardButtons+6;
 #define CLICK 'c'
 
 typedef void (*GameCubeDataProcessor_t)(const GameCubeData_t* data);
-typedef void (*EllipticalProcessor_t)(const GameCubeData_t* data, const EllipticalData_t* elliptical, int32_t multiplier);
+typedef void (*ExerciseMachineProcessor_t)(const GameCubeData_t* data, const ExerciseMachineData_t* exerciseMachine, int32_t multiplier);
 
 typedef struct {
   char mode;
@@ -149,8 +149,8 @@ typedef struct {
   void* usbMode;
   InjectedButton_t const * buttons;
   GameCubeDataProcessor_t stick;
-  EllipticalProcessor_t elliptical;
-  int32_t ellipticalMultiplier; // 64 = default speed ; higher is faster
+  ExerciseMachineProcessor_t exerciseMachine;
+  int32_t exerciseMachineMultiplier; // 64 = default speed ; higher is faster
   const char* commandName;
   const char* description; // no more than 61 characters
 } Injector_t;
@@ -159,8 +159,8 @@ typedef struct {
 void joystickNoShoulder(const GameCubeData_t* data);
 void joystickDualShoulder(const GameCubeData_t* data);
 void joystickUnifiedShoulder(const GameCubeData_t* data);
-void ellipticalSliders(const GameCubeData_t* data, const EllipticalData_t* ellipticalP, int32_t multiplier);
-void directionSwitchSlider(const GameCubeData_t* data, const EllipticalData_t* ellipticalP, int32_t multiplier);
+void exerciseMachineSliders(const GameCubeData_t* data, const ExerciseMachineData_t* exerciseMachineP, int32_t multiplier);
+void directionSwitchSlider(const GameCubeData_t* data, const ExerciseMachineData_t* exerciseMachineP, int32_t multiplier);
 
 // note: Nunchuck Z maps to A, Nunchuck C maps to B
 const InjectedButton_t defaultJoystickButtons[numberOfButtons] = {
@@ -354,21 +354,21 @@ const InjectedButton_t dpadMC[numberOfButtons] = {
 };
 
 const Injector_t injectors[] = {
-  { &USBHID, defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 64, "defaultUnified", "joystick, unified shoulder, speed 100%" },
-  { &USBHID, defaultJoystickButtons, joystickDualShoulder, ellipticalSliders, 40, "defaultDual", "joystick, dual shoulders, speed 63%" },
-  { &USBHID, jetsetJoystickButtons, joystickNoShoulder, ellipticalSliders, 64, "jetset", "Jet Set Radio" },
-  { &USBHID, dpadWASDButtons, NULL, ellipticalSliders, 64, "wasd", "WASD" },
-  { &USBHID, dpadArrowWithCTRL, NULL, ellipticalSliders, 64, "dpadArrowCtrl", "Arrow keys with A=CTRL" },
-  { &USBHID, dpadArrowWithSpace, NULL, ellipticalSliders, 64, "dpadArrowSpace", "Arrow keys with A=SPACE" },  
-  { &USBHID, dpadQBert, NULL, ellipticalSliders, 64, "dpadQBert", "QBert with dpad" },  
-  { &USBHID, dpadMC, NULL, ellipticalSliders, 64, "dpadMC", "Minecraft with dpad" },  
-#ifdef ENABLE_ELLIPTICAL
-  { &USBHID, defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 96, "default96", "joystick, unified shoulder, speed 150%" },  
-  { &USBHID, defaultJoystickButtons, joystickUnifiedShoulder, ellipticalSliders, 128, "default128", "joystick, unified shoulder, speed 200%" },  
+  { &USBHID, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 64, "defaultUnified", "joystick, unified shoulder, speed 100%" },
+  { &USBHID, defaultJoystickButtons, joystickDualShoulder, exerciseMachineSliders, 40, "defaultDual", "joystick, dual shoulders, speed 63%" },
+  { &USBHID, jetsetJoystickButtons, joystickNoShoulder, exerciseMachineSliders, 64, "jetset", "Jet Set Radio" },
+  { &USBHID, dpadWASDButtons, NULL, exerciseMachineSliders, 64, "wasd", "WASD" },
+  { &USBHID, dpadArrowWithCTRL, NULL, exerciseMachineSliders, 64, "dpadArrowCtrl", "Arrow keys with A=CTRL" },
+  { &USBHID, dpadArrowWithSpace, NULL, exerciseMachineSliders, 64, "dpadArrowSpace", "Arrow keys with A=SPACE" },  
+  { &USBHID, dpadQBert, NULL, exerciseMachineSliders, 64, "dpadQBert", "QBert with dpad" },  
+  { &USBHID, dpadMC, NULL, exerciseMachineSliders, 64, "dpadMC", "Minecraft with dpad" },  
+#ifdef ENABLE_EXERCISE_MACHINE
+  { &USBHID, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 96, "default96", "joystick, unified shoulder, speed 150%" },  
+  { &USBHID, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 128, "default128", "joystick, unified shoulder, speed 200%" },  
   { &USBHID, defaultJoystickButtons, joystickDualShoulder, directionSwitchSlider, 64, "directionSwitch", "joystick, direction switch controls sliders" },
 #endif
-  { &USBHID, dpadZX, NULL, ellipticalSliders, 64, "dpadZX", "Arrow keys with A=Z, B=X" },
-  { &XBox360, defaultXBoxButtons, joystickDualShoulder, ellipticalSliders, 64, "xbox360", "XBox360, speed 100%" }
+  { &USBHID, dpadZX, NULL, exerciseMachineSliders, 64, "dpadZX", "Arrow keys with A=Z, B=X" },
+  { &XBox360, defaultXBoxButtons, joystickDualShoulder, exerciseMachineSliders, 64, "xbox360", "XBox360, speed 100%" }
 };
 
 

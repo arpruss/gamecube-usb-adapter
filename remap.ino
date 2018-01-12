@@ -1,4 +1,4 @@
-#include "gamecube.h"
+#include "gamecubecontroller.h"
 
 #ifndef SERIAL_DEBUG
 
@@ -110,12 +110,12 @@ void joystickPOV(const GameCubeData_t* data) {
     Joystick.hat(dir);
 }
 
-uint16_t getEllipticalSpeed(const EllipticalData_t* ellipticalP, int32_t multiplier) {
-#ifndef ENABLE_ELLIPTICAL
+uint16_t getExerciseMachineSpeed(const ExerciseMachineData_t* exerciseMachineP, int32_t multiplier) {
+#ifndef ENABLE_EXERCISE_MACHINE
   return 512;
 #else
   static bool ledIndicator = false;
-  if (! ellipticalP->valid || ellipticalP->speed == 0) {
+  if (! exerciseMachineP->valid || exerciseMachineP->speed == 0) {
     if (ledIndicator) {
       updateDisplay();
       ledIndicator = false;
@@ -123,12 +123,12 @@ uint16_t getEllipticalSpeed(const EllipticalData_t* ellipticalP, int32_t multipl
     return 512;
   }
   if (multiplier == 0) {
-    if (ellipticalP->direction)
+    if (exerciseMachineP->direction)
       return 1023;
     else
       return 0;
   }
-  int32_t speed = 512+multiplier*(ellipticalP->direction?ellipticalP->speed:-ellipticalP->speed)/64;
+  int32_t speed = 512+multiplier*(exerciseMachineP->direction?exerciseMachineP->speed:-exerciseMachineP->speed)/64;
 //  displayNumber(0xF);
   if (speed < 0)
     speed = 0;
@@ -160,8 +160,8 @@ void joystickDualShoulder(const GameCubeData_t* data) {
     }
 }
 
-void ellipticalSliders(const GameCubeData_t* data, const EllipticalData_t* ellipticalP, int32_t multiplier) {
-#ifdef ENABLE_ELLIPTICAL
+void exerciseMachineSliders(const GameCubeData_t* data, const ExerciseMachineData_t* exerciseMachineP, int32_t multiplier) {
+#ifdef ENABLE_EXERCISE_MACHINE
     if (debounceDown.getRawState() && data->device == DEVICE_NUNCHUCK) {
       // useful for calibration and settings for games: when downButton is pressed, joystickY controls both sliders
       if (data->joystickY >= 128+40 || data->joystickY <= 128-40) {
@@ -187,8 +187,8 @@ void ellipticalSliders(const GameCubeData_t* data, const EllipticalData_t* ellip
         return;
        }
     }
-    uint16_t datum = getEllipticalSpeed(ellipticalP, multiplier);
-    if(data->device == DEVICE_GAMECUBE && ! ellipticalP->valid)
+    uint16_t datum = getExerciseMachineSpeed(exerciseMachineP, multiplier);
+    if(data->device == DEVICE_GAMECUBE && ! exerciseMachineP->valid)
       return;
     if (usbMode == &USBHID) {
       joySliderLeft(datum);
@@ -209,9 +209,9 @@ void ellipticalSliders(const GameCubeData_t* data, const EllipticalData_t* ellip
 #endif
 }
 
-void directionSwitchSlider(const GameCubeData_t* data, const EllipticalData_t* ellipticalP, int32_t multiplier) {
+void directionSwitchSlider(const GameCubeData_t* data, const ExerciseMachineData_t* exerciseMachineP, int32_t multiplier) {
     (void)multiplier;
-    if (ellipticalP->direction) {
+    if (exerciseMachineP->direction) {
       if (usbMode == &USBHID) {
         didJoystick = true;
         joySliderRight(1023);
@@ -245,7 +245,7 @@ void joystickNoShoulder(const GameCubeData_t* data) {
     joystickPOV(data);
 }
 
-void inject(const Injector_t* injector, const GameCubeData_t* curDataP, const EllipticalData_t* ellipticalP) {
+void inject(const Injector_t* injector, const GameCubeData_t* curDataP, const ExerciseMachineData_t* exerciseMachineP) {
   didJoystick = false;
   didX360 = false;
 
@@ -318,8 +318,8 @@ void inject(const Injector_t* injector, const GameCubeData_t* curDataP, const El
   if (injector->stick != NULL)
     injector->stick(curDataP);
 
-  if (injector->elliptical != NULL)
-    injector->elliptical(curDataP, ellipticalP, injector->ellipticalMultiplier);
+  if (injector->exerciseMachine != NULL)
+    injector->exerciseMachine(curDataP, exerciseMachineP, injector->exerciseMachineMultiplier);
 
   if (didJoystick)
     Joystick.send();

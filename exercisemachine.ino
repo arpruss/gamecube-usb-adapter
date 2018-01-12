@@ -9,72 +9,72 @@ const uint32_t shortestReasonableRotationTime = 1000l * 60 / BEST_REASONABLE_RPM
 const uint32_t shortestAllowedRotationTime = 1000l * 60 / MAX_USABLE_RPM;
 const uint32_t longestReasonableRotationTime = 1000l * 60 / SLOWEST_REASONABLE_RPM;
 uint32_t lastPulse = 0;
-int32_t ellipticalSpeed;
-volatile uint32_t ellipticalTriggerTime = 0;
-volatile uint32_t lastEllipticalPeriod = 0;
-volatile bool ellipticalPulsed = 0;
+int32_t exerciseMachineSpeed;
+volatile uint32_t exerciseMachineTriggerTime = 0;
+volatile uint32_t lastExerciseMachinePeriod = 0;
+volatile bool exerciseMachinePulsed = 0;
 
 Debounce debounceRotation(rotationDetector, LOW);
 Debounce debounceDirection(directionSwitch, DIRECTION_SWITCH_FORWARD);
 
-void ellipticalInterrupt() {
+void exerciseMachineInterrupt() {
   uint32_t t = millis();
-  uint32_t delta = (uint32_t)(t-ellipticalTriggerTime);
+  uint32_t delta = (uint32_t)(t-exerciseMachineTriggerTime);
   if (delta < shortestAllowedRotationTime) // assume glitch
     return;
-  ellipticalTriggerTime = t;
-  lastEllipticalPeriod = delta;
-  ellipticalPulsed = true;
+  exerciseMachineTriggerTime = t;
+  lastExerciseMachinePeriod = delta;
+  exerciseMachinePulsed = true;
 }
 
-void ellipticalInit() {
-#ifdef ENABLE_ELLIPTICAL
+void exerciseMachineInit() {
+#ifdef ENABLE_EXERCISE_MACHINE
   pinMode(rotationDetector, INPUT); //ARP
   pinMode(directionSwitch, INPUT_PULLDOWN);
-  attachInterrupt(rotationDetector, ellipticalInterrupt, ROTATION_DETECTOR_CHANGE_TO_MONITOR);
+  attachInterrupt(rotationDetector, exerciseMachineInterrupt, ROTATION_DETECTOR_CHANGE_TO_MONITOR);
   debounceDirection.begin();
 #endif
-  ellipticalRotationDetector = debounceRotation.getState();
-  ellipticalSpeed = 0;
+  exerciseMachineRotationDetector = debounceRotation.getState();
+  exerciseMachineSpeed = 0;
 }
 
-void ellipticalUpdate(EllipticalData_t* data) {
-#ifdef ENABLE_ELLIPTICAL
+void exerciseMachineUpdate(ExerciseMachineData_t* data) {
+#ifdef ENABLE_EXERCISE_MACHINE
   uint32_t dt = millis() - lastPulse;
 
   if (dt > longestReasonableRotationTime) {
-    ellipticalSpeed = 0;
+    exerciseMachineSpeed = 0;
     if (dt > turnOffSliderTime)
       data->valid = false;
   }
-  else if ( 800 * shortestReasonableRotationTime < dt * ellipticalSpeed) {
-    ellipticalSpeed = 800 * shortestReasonableRotationTime / dt;
+  else if ( 800 * shortestReasonableRotationTime < dt * exerciseMachineSpeed) {
+    exerciseMachineSpeed = 800 * shortestReasonableRotationTime / dt;
   }
 
-  if (ellipticalPulsed) {
+  if (exerciseMachinePulsed) {
 //    Serial.println("Pulse");
-    ellipticalPulsed = false;
-    ellipticalRotationDetector = 1;
+    exerciseMachinePulsed = false;
+    exerciseMachineRotationDetector = 1;
     updateLED();
     data->valid = true;
     lastPulse = millis();
-    dt = lastEllipticalPeriod;
+    dt = lastExerciseMachinePeriod;
     if (dt > longestReasonableRotationTime) {
-        ellipticalSpeed = 0;
+        exerciseMachineSpeed = 0;
     }
     else {
       if (dt < shortestReasonableRotationTime) {
         dt = shortestReasonableRotationTime;
       }
-      ellipticalSpeed = 800 * shortestReasonableRotationTime / dt;
+      exerciseMachineSpeed = 800 * shortestReasonableRotationTime / dt;
     } 
   }
-  else if (ellipticalRotationDetector && dt >= 50 && ROTATION_DETECTOR_ACTIVE_STATE != digitalRead(rotationDetector)) {
-      ellipticalRotationDetector = 0;
+  else if (exerciseMachineRotationDetector && dt >= 50 && ROTATION_DETECTOR_ACTIVE_STATE != digitalRead(rotationDetector)) {
+      exerciseMachineRotationDetector = 0;
       updateLED();
   }
   
-  data->speed = ellipticalSpeed;
+  data->speed = exerciseMachineSpeed;
   data->direction = debounceDirection.getState();
 #ifdef SERIAL_DEBUG
   Serial.println("Speed "+String(data->speed));

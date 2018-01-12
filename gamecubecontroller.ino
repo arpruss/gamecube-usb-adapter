@@ -26,7 +26,7 @@
 // Put LEDs + resistors (100-220 ohm) between PA0,PA1,PA2,PA3 and 3.3V
 // Put momentary pushbuttons between PA4 (decrement),PA5 (increment) and 3.3V
 
-// Connections for elliptical/bike:
+// Connections for exerciseMachine/bike:
 // GND--GND
 // PA7--4.7Kohm--rotation detector [the resistor may not be needed]
 // PA7--100Kohm--3.3V
@@ -48,7 +48,7 @@
 #include <libmaple/usb_cdcacm.h>
 #include <libmaple/usb.h>
 #include "debounce.h"
-#include "gamecube.h"
+#include "gamecubecontroller.h"
 
 Debounce debounceDown(downButton, HIGH);
 Debounce debounceUp(upButton, HIGH);
@@ -105,7 +105,7 @@ void setup() {
   Serial.println("gamecube controller adapter");
 #endif
 
-  ellipticalInit();
+  exerciseMachineInit();
 
 #ifdef ENABLE_GAMECUBE
   gameCubeInit();
@@ -146,7 +146,7 @@ void setup() {
 
 //uint8_t poorManPWM = 0;
 void updateLED(void) {
-  if (((validDevice != DEVICE_NONE) ^ ellipticalRotationDetector) && validUSB) {
+  if (((validDevice != DEVICE_NONE) ^ exerciseMachineRotationDetector) && validUSB) {
         gpio_write_bit(ledPort, ledPin, 0); //poorManPWM);
     //poorManPWM ^= 1;
   }
@@ -154,7 +154,7 @@ void updateLED(void) {
     gpio_write_bit(ledPort, ledPin, 1);
     //analogWrite(ledPinID, 255);
   }
-  //gpio_write_bit(ledPort, ledPin, ! (((validDevice != DEVICE_NONE) ^ ellipticalRotationDetector) && validUSB));
+  //gpio_write_bit(ledPort, ledPin, ! (((validDevice != DEVICE_NONE) ^ exerciseMachineRotationDetector) && validUSB));
 }
 
 uint8_t receiveReport(GameCubeData_t* data) {
@@ -265,7 +265,7 @@ void pollFeatureRequests() {
 
 void loop() {
   GameCubeData_t data;
-  EllipticalData_t elliptical;
+  ExerciseMachineData_t exerciseMachine;
 
   iwdg_feed();
   
@@ -308,7 +308,7 @@ void loop() {
 
   pollFeatureRequests();
 
-  ellipticalUpdate(&elliptical);
+  exerciseMachineUpdate(&exerciseMachine);
       
   if (savedInjectionMode != injectionMode && (millis()-lastChangedModeTime) >= saveInjectionModeAfterMillis) {
 #ifdef SERIAL_DEBUG
@@ -341,7 +341,7 @@ void loop() {
 //  Serial.println("shoulders = "+String(data.shoulderLeft)+","+String(data.shoulderRight));      
 #else
 if (usb_is_connected(USBLIB) && usb_is_configured(USBLIB)) 
-    inject(injectors + injectionMode, &data, &elliptical);
+    inject(injectors + injectionMode, &data, &exerciseMachine);
 #endif
     
   updateLED();

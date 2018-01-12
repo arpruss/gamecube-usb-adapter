@@ -1,4 +1,4 @@
-#include "gamecube.h"
+#include "gamecubecontroller.h"
 #include "dwt.h"
 
 static const uint8_t maxFails = 4;

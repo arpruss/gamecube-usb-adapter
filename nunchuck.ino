@@ -1,4 +1,4 @@
-#include "gamecube.h"
+#include "gamecubecontroller.h"
 #include <string.h>
 
 #define SOFT_I2C // currently, HardWire doesn't work well for hotplugging
