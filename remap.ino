@@ -10,6 +10,14 @@ bool didX360;
 void* usbMode;
 const Injector_t* prevInjector = NULL;
 
+void joySliderLeft(uint16_t t) {
+  Joystick.sliderLeft(1023-t&1023);
+}
+
+void joySliderRight(uint16_t t) {
+  Joystick.sliderRight(1023-t&1023);
+}
+
 void buttonizeStick(uint8_t* buttons, uint8_t x, uint8_t y) {
   uint8_t dx = x < 128 ? 128 - x : x - 128;
   uint8_t dy = y < 128 ? 128 - y : y - 128;
@@ -124,8 +132,8 @@ void joystickDualShoulder(const GameCubeData_t* data) {
     joystickBasic(data);
     joystickPOV(data);
     if (usbMode == &USBHID) {
-      Joystick.sliderLeft(range8u10u(data->shoulderLeft));
-      Joystick.sliderRight(range8u10u(data->shoulderRight));
+      joySliderLeft(range8u10u(data->shoulderLeft));
+      joySliderRight(range8u10u(data->shoulderRight));
       didJoystick = true;
     }
     else if (usbMode == &XBox360) {
@@ -149,8 +157,8 @@ void ellipticalSliders(const GameCubeData_t* data, const EllipticalData_t* ellip
         else
           out = 512 + delta;
         if (usbMode == &USBHID) {
-          Joystick.sliderLeft(out);
-          Joystick.sliderRight(out);
+          joySliderLeft(out);
+          joySliderRight(out);
           didJoystick = true; 
         }
         else if (usbMode == &XBox360){
@@ -166,8 +174,8 @@ void ellipticalSliders(const GameCubeData_t* data, const EllipticalData_t* ellip
       return;
     uint16_t datum = getEllipticalSpeed(ellipticalP, multiplier);
     if (usbMode == &USBHID) {
-      Joystick.sliderLeft(datum);
-      Joystick.sliderRight(datum);
+      joySliderLeft(datum);
+      joySliderRight(datum);
       didJoystick = true; 
     }
     else if (usbMode == &XBox360){
@@ -189,7 +197,7 @@ void directionSwitchSlider(const GameCubeData_t* data, const EllipticalData_t* e
     if (ellipticalP->direction) {
       if (usbMode == &USBHID) {
         didJoystick = true;
-        Joystick.sliderRight(1023);
+        joySliderRight(1023);
       }
       else if (usbMode == &XBox360) {
         didX360 = true;
@@ -206,8 +214,8 @@ void joystickUnifiedShoulder(const GameCubeData_t* data) {
     uint16_t datum;
     datum = 512+(data->shoulderRight-(int16_t)data->shoulderLeft)*2;
     if (usbMode == &USBHID) {
-      Joystick.sliderLeft(datum);
-      Joystick.sliderRight(datum);
+      joySliderLeft(datum);
+      joySliderRight(datum);
     }
     else if (usbMode == &XBox360) {
       XBox360.sliderLeft(datum>>2);
