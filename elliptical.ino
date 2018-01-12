@@ -1,8 +1,8 @@
 #define MAX_SPEED_VALUE 800
 
-#define BEST_REASONABLE_RPM 188 // 120 // 188
+#define BEST_REASONABLE_RPM 145 // 120 // 188
 #define MAX_USABLE_RPM      300
-#define SLOWEST_REASONABLE_RPM 5
+#define SLOWEST_REASONABLE_RPM 6
 
 const uint32_t turnOffSliderTime = 10000l;
 const uint32_t shortestReasonableRotationTime = 1000l * 60 / BEST_REASONABLE_RPM;

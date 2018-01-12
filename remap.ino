@@ -111,21 +111,38 @@ void joystickPOV(const GameCubeData_t* data) {
 }
 
 uint16_t getEllipticalSpeed(const EllipticalData_t* ellipticalP, int32_t multiplier) {
+#ifndef ENABLE_ELLIPTICAL
+  return 512;
+#else
+  static bool ledIndicator = false;
+  if (! ellipticalP->valid || ellipticalP->speed == 0) {
+    if (ledIndicator) {
+      updateDisplay();
+      ledIndicator = false;
+    }
+    return 512;
+  }
   if (multiplier == 0) {
-    if (ellipticalP->speed == 0)
-      return 512;
-    else if (ellipticalP->direction)
+    if (ellipticalP->direction)
       return 1023;
     else
       return 0;
   }
   int32_t speed = 512+multiplier*(ellipticalP->direction?ellipticalP->speed:-ellipticalP->speed)/64;
+//  displayNumber(0xF);
   if (speed < 0)
-    return 0;
-  else if (speed > 1023)
-    return 1023;
-  else
-    return speed;  
+    speed = 0;
+  if (speed > 1023)
+    speed = 1023;
+//  return speed;
+  if (lastChangedModeTime + 5000 <= millis()) {
+    int absSpeed = speed < 512 ? 512-speed : speed-512;
+    int numLeds = (absSpeed+1) / 128; // 511 maps 
+    displayNumber((1<<numLeds)-1);
+    ledIndicator = true;
+  }
+  return speed;  
+#endif
 }
 
 void joystickDualShoulder(const GameCubeData_t* data) {
@@ -170,9 +187,9 @@ void ellipticalSliders(const GameCubeData_t* data, const EllipticalData_t* ellip
         return;
        }
     }
+    uint16_t datum = getEllipticalSpeed(ellipticalP, multiplier);
     if(data->device == DEVICE_GAMECUBE && ! ellipticalP->valid)
       return;
-    uint16_t datum = getEllipticalSpeed(ellipticalP, multiplier);
     if (usbMode == &USBHID) {
       joySliderLeft(datum);
       joySliderRight(datum);
