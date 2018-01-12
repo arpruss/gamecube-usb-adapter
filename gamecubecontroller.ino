@@ -80,7 +80,7 @@ void beginUSBHID() {
 #else
   USBHID.setSerial(0);
 #endif  
-  USBHID.begin(reportDescription,sizeof(reportDescription));
+  USBHID.begin(reportDescription,sizeof(reportDescription),0,0x25);
   USBHID.setBuffers(HID_REPORT_TYPE_FEATURE, &fb, 1);
   Joystick.setManualReportMode(true);
   delay(500);

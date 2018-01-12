@@ -153,7 +153,7 @@ void ellipticalSliders(const GameCubeData_t* data, const EllipticalData_t* ellip
           Joystick.sliderRight(out);
           didJoystick = true; 
         }
-        else if (injetor->usbMode == &XBox360{
+        else if (usbMode == &XBox360){
           XBox360.sliderLeft(out>>2);
           XBox360.sliderRight(out>>2);
           didX360 = true;
