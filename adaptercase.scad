@@ -2,13 +2,13 @@ use <roundedsquare.scad>;
 
 //<params>
 includeBottom = 0; // [1:yes, 0:no]
-includeTop = 0; // [1:yes, 0:no]
+includeTop = 1; // [1:yes, 0:no]
 includeGamecubePort = 1; // [1:yes, 0:no]
 includeEllipticalPort = 1; // [1:yes, 0:no]
 includeNunchuckPort = 1; // [1:yes, 0:no]
 includeDirectionSwitchPort = 1; // [1:yes, 0:no]
 includeWashers = 0; // [1:yes, 0:no]
-includeFeet = 1; // [1:yes, 0:no]
+includeFeet = 0; // [1:yes, 0:no]
 innerLength = 80;
 extraWidth = 18;
 sideWall = 1.5;
