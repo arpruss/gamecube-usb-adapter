@@ -1,7 +1,7 @@
 use <roundedsquare.scad>;
 
 //<params>
-includeBottom = 0; // [1:yes, 0:no]
+includeBottom = 1; // [1:yes, 0:no]
 includeTop = 1; // [1:yes, 0:no]
 includeGamecubePort = 1; // [1:yes, 0:no]
 includeEllipticalPort = 1; // [1:yes, 0:no]
@@ -58,6 +58,7 @@ nunchuckPortPillarTopFromCenter = 4.9;
 nunchuckPortZOffset = 2;
 nunchuckScrewHoleYMinusFromCenterOfPort = 6.99;
 nunchuckScrewHoleXMinusFromOutsideOfWall = 12.91;
+stickyFootHoleSize = 8.85;
 nunchuckScrewHoleYSpacing = 2.54*5;
 nunchuckScrewHoleXSpacing = 2.54*6;
 //</params>
@@ -227,6 +228,31 @@ module bottom() {
     }
 }
 
+module pairOfFeet() {
+    stripSize = 2*sideWall+innerWidth;
+    d2 = stickyFootHoleSize+2;
+    d1 = d2;
+    $fn=16;
+    
+    module foot() {
+        render(convexity=2)
+        difference() {
+            cylinder(d1=d1,d2=d2,h=2.5+1);
+            translate([0,0,2.5+0.01]) cylinder(d=stickyFootHoleSize,h=1);
+        }
+    }
+    
+    linear_extrude(height=0.75)
+    hull() {
+        circle(d=d1);
+        translate([0,stripSize-d2,0])
+        circle(d=d1);
+    }
+    foot();
+    translate([0,stripSize-d2,0])
+    foot();
+}
+
 module top() {
     render(convexity=2)
     difference() {
@@ -292,11 +318,9 @@ if (includeWashers)
     }
  if (includeSpacer) 
     translate([-50,0,0]) spacer();
- if (includeFeet) 
-    translate([-70,0,0]) {
-        for (i=[0:0])
-            translate([0,i*15,0]) {
-                cylinder(d1=fatPillarDiameter,d2=fatPillarDiameter-2,h=2.5);
-                cylinder(d=screwHeadDiameter-0.7,h=7.5);
-            }
-    }
+ if (includeFeet) {
+    translate([-70,0,0]) 
+        pairOfFeet();
+    translate([-90,0,0]) 
+        pairOfFeet();
+ }
