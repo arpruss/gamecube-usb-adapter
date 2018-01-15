@@ -14,7 +14,6 @@ HID_REPORT_FEATURE = 3
 
 
 def sendCommand(command):
-    print(command)
     data = [REPORT_ID] + list(map(ord, command))
     data += [0 for i in range(REPORT_SIZE+1-len(data))]
     myReport.set_raw_data(data)
@@ -35,6 +34,7 @@ def query(command):
     while time()-t0 < TIMEOUT:
         out = getString()
         if out.startswith(command+"="):
+            print(out)
             return out[len(command)+1:]
         if time()-lastSent >= 0.001:
             sendCommand(command+"?")
@@ -67,7 +67,10 @@ while myReport is None:
         device.close()
     
     if myReport is None and not msg:
-        print("Plug device in (or press ctrl-c to exit)")
+        if hid.HidDeviceFilter(vendor_id = 0x045e, product_id=0x028e).get_devices():
+            print("You may be in XBox360 mode. Press a mode button to change.")
+        else:
+            print("Plug device in (or press ctrl-c to exit).")
         msg = True
     
     sleep(0.25)
@@ -87,6 +90,7 @@ else:
 
     option = Listbox(root,selectmode=SINGLE)
     option.config(width=0)
+    option.config(height=0)
     option.pack()
     
     current = query("M")
