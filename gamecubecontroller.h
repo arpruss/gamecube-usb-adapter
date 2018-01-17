@@ -63,6 +63,7 @@ void* currentUSBMode = &USBHID;
 
 uint8_t validDevice = DEVICE_NONE;
 uint8_t validUSB = 0;
+volatile bool exitX360Mode = false;
 uint8_t exerciseMachineRotationDetector = 0;
  
 const uint32_t watchdogSeconds = 10;

@@ -6,7 +6,7 @@
 //    Install official Arduino Zero board
 //    Put the contents of the above branch in your Arduino/Hardware folder
 //    If on Windows, run drivers\win\install_drivers.bat
-//    Install the KeyboardMouseJoystick_stm32f1 library.
+//    Install the USBHID_stm32f1 library.
 // Note: You may need to adjust permissions on some of the dll, exe and bat files.
 
 // Facing GameCube socket (as on console), flat on top:
@@ -83,12 +83,6 @@ void beginUSBHID() {
   USBHID.begin(reportDescription,sizeof(reportDescription),0,0x25);
   USBHID.setBuffers(HID_REPORT_TYPE_FEATURE, &fb, 1);
   Joystick.setManualReportMode(true);
-  delay(500);
-}
-
-void beginX360() {
-  XBox360.begin();
-  XBox360.setManualReportMode(true);
   delay(500);
 }
 
@@ -304,6 +298,18 @@ void loop() {
       }
       updateLED();
     } while((millis()-t0) < 6);
+  }
+
+  if (exitX360Mode) {
+    for (unsigned i=0; i<numInjectionModes ; i++) {
+      if (injectors[i].usbMode == &USBHID) {
+        injectionMode = i;
+        lastChangedModeTime = millis();
+        updateDisplay();
+        break;
+      }
+    }
+    exitX360Mode = false;
   }
 
   pollFeatureRequests();

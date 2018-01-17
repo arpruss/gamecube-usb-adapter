@@ -1,4 +1,5 @@
 from sys import argv,exit
+import ctypes
 
 try:
     from pywinusb import hid
@@ -12,7 +13,26 @@ REPORT_ID = 20
 REPORT_SIZE = 63
 HID_REPORT_FEATURE = 3
 
+class XINPUT_VIBRATION(ctypes.Structure):
+    _fields_ = [("wLeftMotorSpeed", ctypes.c_ushort),
+                ("wRightMotorSpeed", ctypes.c_ushort)]
 
+xinput = ctypes.windll.xinput1_1  # Load Xinput.dll
+
+XInputSetState = xinput.XInputSetState
+XInputSetState.argtypes = [ctypes.c_uint, ctypes.POINTER(XINPUT_VIBRATION)]
+XInputSetState.restype = ctypes.c_uint
+
+def sendMessage(controller, message):
+    for c in message:
+        a = ord(c)
+        vibration = XINPUT_VIBRATION(a<<8, (a^0x4b)<<8)
+        XInputSetState(0, ctypes.byref(vibration))
+        sleep(0.01)
+    vibration = XINPUT_VIBRATION(0, 0)
+    XInputSetState(0, ctypes.byref(vibration))
+    sleep(0.01)
+    
 def sendCommand(command):
     data = [REPORT_ID] + list(map(ord, command))
     data += [0 for i in range(REPORT_SIZE+1-len(data))]
@@ -68,7 +88,9 @@ while myReport is None:
     
     if myReport is None and not msg:
         if hid.HidDeviceFilter(vendor_id = 0x045e, product_id=0x028e).get_devices():
-            print("You may be in XBox360 mode. Press a mode button to change.")
+            print("You may be in XBox360 mode. Attempting to force exit.")
+            for i in range(10):
+                sendMessage(0, 'Exit2HID')
         else:
             print("Plug device in (or press ctrl-c to exit).")
         msg = True
