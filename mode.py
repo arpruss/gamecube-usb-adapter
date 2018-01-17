@@ -89,8 +89,11 @@ while myReport is None:
     if myReport is None and not msg:
         if hid.HidDeviceFilter(vendor_id = 0x045e, product_id=0x028e).get_devices():
             print("You may be in XBox360 mode. Attempting to force exit.")
-            for i in range(10):
-                sendMessage(0, 'Exit2HID')
+            for i in range(5):
+                try:
+                    sendMessage(0, 'Exit2HID')
+                except:
+                    pass
         else:
             print("Plug device in (or press ctrl-c to exit).")
         msg = True
