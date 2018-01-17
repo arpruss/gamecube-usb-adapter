@@ -30,7 +30,7 @@ def sendMessage(controller, message):
         XInputSetState(0, ctypes.byref(vibration))
         sleep(0.01)
     vibration = XINPUT_VIBRATION(0, 0)
-    XInputSetState(0, ctypes.byref(vibration))
+    XInputSetState(controller, ctypes.byref(vibration))
     sleep(0.01)
     
 def sendCommand(command):
@@ -61,13 +61,13 @@ def query(command):
             lastSent = time()
     return None
 
-msg = False
+msgX360 = False
+msgNone = False
 
 myReport = None
 
 while myReport is None:    
     for d in hid.HidDeviceFilter(vendor_id = 0x1EAF).get_devices():
-        print(d)
         device = d
         device.open()
 
@@ -86,17 +86,23 @@ while myReport is None:
         myReport = None
         device.close()
     
-    if myReport is None and not msg:
-        if hid.HidDeviceFilter(vendor_id = 0x045e, product_id=0x028e).get_devices():
-            print("You may be in XBox360 mode. Attempting to force exit.")
-            for i in range(5):
-                try:
-                    sendMessage(0, 'Exit2HID')
-                except:
-                    pass
+    if myReport is None:
+        xboxControllers = tuple(hid.HidDeviceFilter(vendor_id = 0x045e, product_id=0x028e).get_devices())
+        if xboxControllers:
+            if not msgX360:
+                print("You may be in XBox360 mode. Attempting to force exit.")
+                print("If that fails, switch manually with the mode buttons on the device.")
+                for i in range(max(5,len(xboxControllers))):
+                    try:
+                        sendMessage(i, 'Exit2HID')
+                    except e:
+                        pass
+                msgX360 = True
+                sleep(1)
         else:
-            print("Plug device in (or press ctrl-c to exit).")
-        msg = True
+            if not msgNone:
+                print("Plug device in (or press ctrl-c to exit).")
+                msgNone = True
     
     sleep(0.25)
     
