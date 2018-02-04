@@ -4,9 +4,10 @@
 #undef SERIAL_DEBUG
 
 #include <USBHID.h>
-#include <XBox360.h>
+#include <USBXBox360.h>
 
 #ifdef SERIAL_DEBUG
+#include <USBCompositeSerial.h>
 # define Serial CompositeSerial
 #endif
 
