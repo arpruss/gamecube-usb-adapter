@@ -86,6 +86,11 @@ void beginUSBHID() {
   delay(500);
 }
 
+void beginX360() {
+ XBox360.begin();
+ XBox360.setManualReportMode(true);
+ delay(500);
+}
 
 void setup() {
   for (int i=0; i<numIndicators; i++)
