@@ -76,11 +76,10 @@ volatile HIDBuffer_t fb { featureBuffer, HID_BUFFER_SIZE(FEATURE_DATA_SIZE,1), H
 
 void beginUSBHID() {
 #ifdef SERIAL_DEBUG
-  USBHID.setSerial(1);
+  USBHID_begin_with_serial(reportDescription,sizeof(reportDescription),0,0x25);
 #else
-  USBHID.setSerial(0);
-#endif  
   USBHID.begin(reportDescription,sizeof(reportDescription),0,0x25);
+#endif
   USBHID.addFeatureBuffer(&fb);
   Joystick.setManualReportMode(true);
   delay(500);
@@ -223,7 +222,7 @@ void intToString(char* buf, int a) {
 }
 
 void pollFeatureRequests() {
-  if (Joystick.getFeature(featureReport)) {
+  if (currentUSBMode == &USBHID && Joystick.getFeature(featureReport)) {
     if (0==strcmp((char*)featureReport, "id?")) {
       setFeature("id=GameCubeControllerAdapter");
     }

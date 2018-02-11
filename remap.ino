@@ -256,7 +256,6 @@ void inject(const Injector_t* injector, const GameCubeData_t* curDataP, const Ex
       else if (currentUSBMode == &XBox360) 
         XBox360.end();
       
-      delay(100);
       if (injector->usbMode == &USBHID) 
         beginUSBHID();    
       else if (injector->usbMode == &XBox360)
