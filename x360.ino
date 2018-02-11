@@ -18,7 +18,7 @@ void detectModeSwitch(uint8 left, uint8 right) {
     if (xMessagePos >= xMessageLen) {
       xMessagePos = 0;
       for (uint32 i=0; i<numInjectionModes; i++) {
-        if (injectors[i].usbMode == &USBHID) {
+        if (injectors[i].usbMode != &modeX360) {
           injectionMode = i;
           lastChangedModeTime = millis();
           updateDisplay();
@@ -34,6 +34,10 @@ void beginX360() {
  XBox360.setManualReportMode(true);
  XBox360.setRumbleCallback(detectModeSwitch);
  delay(500);
+}
+
+void endX360() {
+ XBox360.end();
 }
 
 

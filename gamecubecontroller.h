@@ -15,7 +15,7 @@
 
 #define ENABLE_GAMECUBE
 #define ENABLE_NUNCHUCK
-//#define ENABLE_EXERCISE_MACHINE
+#define ENABLE_EXERCISE_MACHINE
 
 #define EEPROM_VARIABLE_INJECTION_MODE 0
 #define DEVICE_NONE     0
@@ -44,11 +44,17 @@ typedef struct {
   uint8_t valid;
 } ExerciseMachineData_t;
 
+typedef struct {
+  void (*begin)();
+  void (*end)();
+} USBMode_t;
+
 void exerciseMachineUpdate(ExerciseMachineData_t* data);
 void exerciseMachineInit(void);
 
 void nunchuckInit(void);
 uint8_t nunchuckReceiveReport(GameCubeData_t* data);
+extern HIDJoystick Joystick2;
 
 void gameCubeInit(void);
 void gameCubeSendBits(uint32_t data, uint8_t bits);
@@ -57,10 +63,14 @@ uint8_t gameCubeReceiveReport(GameCubeData_t* data, uint8_t rumble);
 uint8_t gameCubeReceiveReport(GameCubeData_t* data);
 void updateLED(void);
 void beginUSBHID();
+void endUSBHID();
+void beginDual();
+void endDual();
+void beginX360();
+void endX360();
 
 uint8_t loadInjectionMode(void);
 void saveInjectionMode(uint8_t mode);
-void* currentUSBMode = &USBHID;
 
 uint8_t validDevice = DEVICE_NONE;
 uint8_t validUSB = 0;
@@ -148,7 +158,7 @@ typedef struct {
 } InjectedButton_t;
 
 typedef struct {
-  void* usbMode;
+  const USBMode_t* usbMode;
   InjectedButton_t const * buttons;
   GameCubeDataProcessor_t stick;
   ExerciseMachineProcessor_t exerciseMachine;
@@ -355,26 +365,41 @@ const InjectedButton_t dpadMC[numberOfButtons] = {
     { 0,   {.key = 0 } },           // virtual up
 };
 
-const Injector_t injectors[] = {
-  { &USBHID, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 64, "defaultUnified", "joystick, unified shoulder, speed 100%" },
-  { &USBHID, defaultJoystickButtons, joystickDualShoulder, exerciseMachineSliders, 40, "defaultDual", "joystick, dual shoulders, speed 63%" },
-  { &USBHID, jetsetJoystickButtons, joystickNoShoulder, exerciseMachineSliders, 64, "jetset", "Jet Set Radio" },
-  { &USBHID, dpadWASDButtons, NULL, exerciseMachineSliders, 64, "wasd", "WASD" },
-  { &USBHID, dpadArrowWithCTRL, NULL, exerciseMachineSliders, 64, "dpadArrowCtrl", "Arrow keys with A=CTRL" },
-  { &USBHID, dpadArrowWithSpace, NULL, exerciseMachineSliders, 64, "dpadArrowSpace", "Arrow keys with A=SPACE" },  
-  { &USBHID, dpadQBert, NULL, exerciseMachineSliders, 64, "dpadQBert", "QBert with dpad" },  
-  { &USBHID, dpadMC, NULL, exerciseMachineSliders, 64, "dpadMC", "Minecraft with dpad" },  
-#ifdef ENABLE_EXERCISE_MACHINE
-  { &USBHID, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 96, "default96", "joystick, unified shoulder, speed 150%" },  
-  { &USBHID, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 128, "default128", "joystick, unified shoulder, speed 200%" },  
-  { &USBHID, defaultJoystickButtons, joystickDualShoulder, directionSwitchSlider, 64, "directionSwitch", "joystick, direction switch controls sliders" },
-#endif
-  { &USBHID, dpadZX, NULL, exerciseMachineSliders, 64, "dpadZX", "Arrow keys with A=Z, B=X" },
-  { &XBox360, defaultXBoxButtons, joystickDualShoulder, exerciseMachineSliders, 64, "xbox360", "XBox360, speed 100%" }
+const USBMode_t modeUSBHID = {
+  beginUSBHID,
+  endUSBHID
 };
 
+const USBMode_t* currentUSBMode = &modeUSBHID;
+
+const USBMode_t modeX360 = {
+  beginX360, endX360
+};
+
+const USBMode_t modeDualJoystick = {
+  beginDual, endDual
+};
+
+const Injector_t injectors[] = {
+  { &modeUSBHID, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 64, "defaultUnified", "joystick, unified shoulder, speed 100%" },
+  { &modeUSBHID, defaultJoystickButtons, joystickDualShoulder, exerciseMachineSliders, 40, "defaultDual", "joystick, dual shoulders, speed 63%" },
+  { &modeUSBHID, jetsetJoystickButtons, joystickNoShoulder, exerciseMachineSliders, 64, "jetset", "Jet Set Radio" },
+  { &modeUSBHID, dpadWASDButtons, NULL, exerciseMachineSliders, 64, "wasd", "WASD" },
+  { &modeUSBHID, dpadArrowWithCTRL, NULL, exerciseMachineSliders, 64, "dpadArrowCtrl", "Arrow keys with A=CTRL" },
+  { &modeUSBHID, dpadArrowWithSpace, NULL, exerciseMachineSliders, 64, "dpadArrowSpace", "Arrow keys with A=SPACE" },  
+  { &modeUSBHID, dpadQBert, NULL, exerciseMachineSliders, 64, "dpadQBert", "QBert with dpad" },  
+  { &modeUSBHID, dpadMC, NULL, exerciseMachineSliders, 64, "dpadMC", "Minecraft with dpad" },  
+#ifdef ENABLE_EXERCISE_MACHINE
+  { &modeUSBHID, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 96, "default96", "joystick, unified shoulder, speed 150%" },  
+  { &modeUSBHID, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 128, "default128", "joystick, unified shoulder, speed 200%" },  
+  { &modeUSBHID, defaultJoystickButtons, joystickDualShoulder, directionSwitchSlider, 64, "directionSwitch", "joystick, direction switch controls sliders" },
+#endif
+  { &modeUSBHID, dpadZX, NULL, exerciseMachineSliders, 64, "dpadZX", "Arrow keys with A=Z, B=X" },
+  { &modeX360, defaultXBoxButtons, joystickDualShoulder, exerciseMachineSliders, 64, "xbox360", "XBox360, speed 100%" }
+};
 
 const uint32_t numInjectionModes = sizeof(injectors)/sizeof(*injectors);
+void inject(HIDJoystick* joy, const Injector_t* injector, const GameCubeData_t* curDataP, const ExerciseMachineData_t* exerciseMachineP);
 
 #endif // _GAMECUBE_H
 

@@ -70,9 +70,16 @@ const uint8_t reportDescription[] = {
         HID_FEATURE_REPORT_DESCRIPTOR(FEATURE_DATA_SIZE))
 };
 
+const uint8_t dualJoystickReportDescription[] = {
+   HID_JOYSTICK_REPORT_DESCRIPTOR(HID_JOYSTICK_REPORT_ID, 
+        HID_FEATURE_REPORT_DESCRIPTOR(FEATURE_DATA_SIZE)),
+   HID_JOYSTICK_REPORT_DESCRIPTOR(HID_JOYSTICK_REPORT_ID+1)
+};
+
 uint8_t featureReport[FEATURE_DATA_SIZE];
 uint8_t featureBuffer[HID_BUFFER_ALLOCATE_SIZE(FEATURE_DATA_SIZE,1)];
 volatile HIDBuffer_t fb { featureBuffer, HID_BUFFER_SIZE(FEATURE_DATA_SIZE,1), HID_JOYSTICK_REPORT_ID };
+HIDJoystick Joystick2(HID_JOYSTICK_REPORT_ID+1);
 
 void beginUSBHID() {
 #ifdef SERIAL_DEBUG
@@ -83,6 +90,26 @@ void beginUSBHID() {
   USBHID.addFeatureBuffer(&fb);
   Joystick.setManualReportMode(true);
   delay(500);
+}
+
+void endUSBHID() {
+  USBHID.end();
+}
+
+void beginDual() {
+#ifdef SERIAL_DEBUG
+  USBHID_begin_with_serial(dualJoystickReportDescription,sizeof(dualJoystickReportDescription),0,0x25);
+#else
+  USBHID.begin(dualJoystickReportDescription,sizeof(dualJoystickReportDescription),0,0x25);
+#endif
+  USBHID.addFeatureBuffer(&fb);
+  Joystick.setManualReportMode(true);
+  Joystick2.setManualReportMode(true);
+  delay(500);
+}
+
+void endDual() {
+  USBHID.end();
 }
 
 void setup() {
@@ -123,12 +150,8 @@ void setup() {
 
   savedInjectionMode = injectionMode;
 
-  if (injectors[injectionMode].usbMode == &USBHID) {
-    beginUSBHID();
-  }
-  else if (injectors[injectionMode].usbMode == &XBox360) {
-    beginX360();
-  }
+  currentUSBMode = injectors[injectionMode].usbMode;
+  currentUSBMode->begin();
   
   updateDisplay();
 
@@ -216,7 +239,7 @@ void intToString(char* buf, int a) {
 }
 
 void pollFeatureRequests() {
-  if (currentUSBMode == &USBHID && Joystick.getFeature(featureReport)) {
+  if (currentUSBMode != &modeX360 && Joystick.getFeature(featureReport)) {
     if (0==strcmp((char*)featureReport, "id?")) {
       setFeature("id=GameCubeControllerAdapter");
     }
@@ -298,18 +321,6 @@ void loop() {
     } while((millis()-t0) < 6);
   }
 
-  if (exitX360Mode) {
-    for (unsigned i=0; i<numInjectionModes ; i++) {
-      if (injectors[i].usbMode == &USBHID) {
-        injectionMode = i;
-        lastChangedModeTime = millis();
-        updateDisplay();
-        break;
-      }
-    }
-    exitX360Mode = false;
-  }
-
   pollFeatureRequests();
 
   exerciseMachineUpdate(&exerciseMachine);
@@ -345,7 +356,7 @@ void loop() {
 //  Serial.println("shoulders = "+String(data.shoulderLeft)+","+String(data.shoulderRight));      
 #else
 if (usb_is_connected(USBLIB) && usb_is_configured(USBLIB)) 
-    inject(injectors + injectionMode, &data, &exerciseMachine);
+    inject(&Joystick, injectors + injectionMode, &data, &exerciseMachine);
 #endif
     
   updateLED();
