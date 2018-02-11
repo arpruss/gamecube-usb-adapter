@@ -15,7 +15,7 @@
 
 #define ENABLE_GAMECUBE
 #define ENABLE_NUNCHUCK
-#define ENABLE_EXERCISE_MACHINE
+//#define ENABLE_EXERCISE_MACHINE
 
 #define EEPROM_VARIABLE_INJECTION_MODE 0
 #define DEVICE_NONE     0
@@ -72,7 +72,7 @@ void endX360();
 uint8_t loadInjectionMode(void);
 void saveInjectionMode(uint8_t mode);
 
-uint8_t validDevice = DEVICE_NONE;
+uint8_t validDevices[2] = {DEVICE_NONE,DEVICE_NONE};
 uint8_t validUSB = 0;
 volatile bool exitX360Mode = false;
 uint8_t exerciseMachineRotationDetector = 0;
@@ -395,7 +395,10 @@ const Injector_t injectors[] = {
   { &modeUSBHID, defaultJoystickButtons, joystickDualShoulder, directionSwitchSlider, 64, "directionSwitch", "joystick, direction switch controls sliders" },
 #endif
   { &modeUSBHID, dpadZX, NULL, exerciseMachineSliders, 64, "dpadZX", "Arrow keys with A=Z, B=X" },
-  { &modeX360, defaultXBoxButtons, joystickDualShoulder, exerciseMachineSliders, 64, "xbox360", "XBox360, speed 100%" }
+  { &modeX360, defaultXBoxButtons, joystickDualShoulder, exerciseMachineSliders, 64, "xbox360", "XBox360, speed 100%" },
+#if defined(ENABLE_GAMECUBE) && defined(ENABLE_NUNCHUCK)
+  { &modeDualJoystick, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 64, "dual", "dual joystick" },
+#endif  
 };
 
 const uint32_t numInjectionModes = sizeof(injectors)/sizeof(*injectors);

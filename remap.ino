@@ -267,10 +267,13 @@ void inject(HIDJoystick* joy, const Injector_t* injector, const GameCubeData_t* 
 
   if (prevInjector != injector) {
     if (currentUSBMode != &modeX360) {
-      Keyboard.releaseAll();
-      Mouse.release(0xFF);
+      if (currentUSBMode != &modeDualJoystick) {
+        Keyboard.releaseAll();
+        Mouse.release(0xFF);
+      }
       for (int i=0; i<32; i++)
         curJoystick->button(i, 0);
+      didJoystick = true;
     }
     else {
       for (int i=0; i<16; i++)
@@ -320,8 +323,9 @@ void inject(HIDJoystick* joy, const Injector_t* injector, const GameCubeData_t* 
   if (injector->exerciseMachine != NULL)
     injector->exerciseMachine(curDataP, exerciseMachineP, injector->exerciseMachineMultiplier);
 
-  if (didJoystick)
+  if (didJoystick) {
     curJoystick->send();
+  }
 
   if (didX360)
     XBox360.send(); 

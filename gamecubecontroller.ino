@@ -98,9 +98,9 @@ void endUSBHID() {
 
 void beginDual() {
 #ifdef SERIAL_DEBUG
-  USBHID_begin_with_serial(dualJoystickReportDescription,sizeof(dualJoystickReportDescription),0,0x25);
+  USBHID_begin_with_serial(dualJoystickReportDescription,sizeof(dualJoystickReportDescription),0,0x26);
 #else
-  USBHID.begin(dualJoystickReportDescription,sizeof(dualJoystickReportDescription),0,0x25);
+  USBHID.begin(dualJoystickReportDescription,sizeof(dualJoystickReportDescription),0,0x26);
 #endif
   USBHID.addFeatureBuffer(&fb);
   Joystick.setManualReportMode(true);
@@ -161,7 +161,7 @@ void setup() {
 
 //uint8_t poorManPWM = 0;
 void updateLED(void) {
-  if (((validDevice != DEVICE_NONE) ^ exerciseMachineRotationDetector) && validUSB) {
+  if (((validDevices[0] != DEVICE_NONE) ^ exerciseMachineRotationDetector) && validUSB) {
         gpio_write_bit(ledPort, ledPin, 0); //poorManPWM);
     //poorManPWM ^= 1;
   }
@@ -172,29 +172,31 @@ void updateLED(void) {
   //gpio_write_bit(ledPort, ledPin, ! (((validDevice != DEVICE_NONE) ^ exerciseMachineRotationDetector) && validUSB));
 }
 
-uint8_t receiveReport(GameCubeData_t* data) {
+static uint8_t receiveReport(GameCubeData_t* data, uint8_t deviceNumber) {
   uint8_t success;
+  uint8_t reservedDevice = deviceNumber > 0 ? validDevices[0] : DEVICE_NONE;
+  uint8_t validDevice = validDevices[deviceNumber];
 
 #ifdef ENABLE_GAMECUBE
-  if (validDevice == DEVICE_GAMECUBE || validDevice == DEVICE_NONE) {
+  if (reservedDevice != DEVICE_GAMECUBE && ( validDevices[deviceNumber] == DEVICE_GAMECUBE || validDevice == DEVICE_NONE) ) {
     success = gameCubeReceiveReport(data);
     if (success) {
-      validDevice = DEVICE_GAMECUBE;
+      validDevices[deviceNumber] = DEVICE_GAMECUBE;
       return 1;
     }
     validDevice = DEVICE_NONE;
   }
 #endif
 #ifdef ENABLE_NUNCHUCK
-  if (validDevice == DEVICE_NUNCHUCK || nunchuckDeviceInit()) {
+  if (reservedDevice != DEVICE_NUNCHUCK && ( validDevice == DEVICE_NUNCHUCK || nunchuckDeviceInit())) {
     success = nunchuckReceiveReport(data);
     if (success) {
-      validDevice = DEVICE_NUNCHUCK;
+      validDevices[deviceNumber] = DEVICE_NUNCHUCK;
       return 1;
     }
   }
 #endif
-  validDevice = DEVICE_NONE;
+  validDevices[deviceNumber] = DEVICE_NONE;
 
   data->joystickX = 128;
   data->joystickY = 128;
@@ -280,7 +282,9 @@ void pollFeatureRequests() {
 
 void loop() {
   GameCubeData_t data;
+  GameCubeData_t data2;
   ExerciseMachineData_t exerciseMachine;
+  bool dual = false;
 
   iwdg_feed();
   
@@ -348,15 +352,22 @@ void loop() {
   validUSB = 1;
 #endif
 
-  receiveReport(&data);
+  dual = currentUSBMode == &modeDualJoystick && injectors[injectionMode].usbMode == &modeDualJoystick;
+  receiveReport(&data,0);
+  if (dual)
+    dual = (bool)receiveReport(&data2,1);
 #ifdef SERIAL_DEBUG
 //  Serial.println("buttons1 = "+String(data.buttons));  
   Serial.println("joystick = "+String(data.joystickX)+","+String(data.joystickY));  
 //  Serial.println("c-stick = "+String(data.cX)+","+String(data.cY));  
 //  Serial.println("shoulders = "+String(data.shoulderLeft)+","+String(data.shoulderRight));      
 #else
-if (usb_is_connected(USBLIB) && usb_is_configured(USBLIB)) 
+  if (usb_is_connected(USBLIB) && usb_is_configured(USBLIB)) {
     inject(&Joystick, injectors + injectionMode, &data, &exerciseMachine);
+    if (dual) {
+      inject(&Joystick2, injectors + injectionMode, &data2, &exerciseMachine);
+    }
+}
 #endif
     
   updateLED();
