@@ -85,12 +85,6 @@ void beginUSBHID() {
   delay(500);
 }
 
-void beginX360() {
- XBox360.begin();
- XBox360.setManualReportMode(true);
- delay(500);
-}
-
 void setup() {
   for (int i=0; i<numIndicators; i++)
     pinMode(indicatorLEDs[i], OUTPUT);
@@ -124,7 +118,7 @@ void setup() {
   else
     injectionMode = i; 
 
-  if (injectionMode > numInjectionModes)
+  if (injectionMode >= numInjectionModes)
     injectionMode = 0;
 
   savedInjectionMode = injectionMode;
@@ -232,7 +226,7 @@ void pollFeatureRequests() {
       setFeature(featureReport);
     }
     else if (0==strncmp((char*)featureReport, "m:", 2) || 0==strncmp((char*)featureReport, "M:", 2)) {
-      for (int i=0; i < numInjectionModes; i++) {
+      for (unsigned i=0; i < numInjectionModes; i++) {
         if (0==strncmp((char*)featureReport+2, featureReport[0]=='m' ? injectors[i].commandName : injectors[i].description, FEATURE_DATA_SIZE-2)) {
           injectionMode = i;
           lastChangedModeTime = millis();

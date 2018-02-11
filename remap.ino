@@ -11,11 +11,11 @@ void* usbMode;
 const Injector_t* prevInjector = NULL;
 
 void joySliderLeft(uint16_t t) {
-  Joystick.sliderLeft(1023-t&1023);
+  Joystick.sliderLeft((1023-t)&1023);
 }
 
 void joySliderRight(uint16_t t) {
-  Joystick.sliderRight(1023-t&1023);
+  Joystick.sliderRight((1023-t)&1023);
 }
 
 void buttonizeStick(uint8_t* buttons, uint8_t x, uint8_t y) {
