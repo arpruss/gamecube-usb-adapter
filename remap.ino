@@ -19,7 +19,7 @@ void joySliderRight(uint16_t t) {
   curJoystick->sliderRight((1023-t)&1023);
 }
 
-void buttonizeStick(uint8_t* buttons, uint8_t x, uint8_t y) {
+void buttonizeStick4dir(uint8_t* buttons, uint8_t x, uint8_t y) {
   uint8_t dx = x < 128 ? 128 - x : x - 128;
   uint8_t dy = y < 128 ? 128 - y : y - 128;
   if (dx > dy) {
@@ -39,6 +39,38 @@ void buttonizeStick(uint8_t* buttons, uint8_t x, uint8_t y) {
     else {
       buttons[virtualUp] = 1;
     }
+  }
+}
+
+const uint32_t tan22_5 = 4142;
+
+void buttonizeStick(uint8_t* buttons, uint8_t x, uint8_t y) {
+  uint32_t dx = x < 128 ? 128 - x : x - 128;
+  uint32_t dy = y < 128 ? 128 - y : y - 128;
+  uint32_t r2 = dx*dx+dy*dy;
+  if (r2 <= directionThreshold*(uint32_t)directionThreshold)
+    return;
+  if (dy * 10000 < tan22_5 * dx) {
+    if (x<128)
+      buttons[virtualLeft]=1;
+    else
+      buttons[virtualRight]=1;
+  }
+  else if (dx * 10000 < dy * tan22_5) {
+    if (y<128)
+      buttons[virtualDown]=1;
+    else
+      buttons[virtualUp]=1;
+  }
+  else {
+    if (x<128)
+      buttons[virtualLeft]=1;
+    else
+      buttons[virtualRight]=1;
+    if (y<128)
+      buttons[virtualDown]=1;
+    else
+      buttons[virtualUp]=1;
   }
 }
 
