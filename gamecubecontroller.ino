@@ -52,6 +52,7 @@
 
 Debounce debounceDown(downButton, HIGH);
 Debounce debounceUp(upButton, HIGH);
+unsigned numDisplayableModes = 0;
 
 void displayNumber(uint8_t x) {
   for (int i=0; i<numIndicators; i++, x>>=1) 
@@ -60,7 +61,17 @@ void displayNumber(uint8_t x) {
 }
 
 void updateDisplay() {
-  displayNumber(numInjectionModes >= 16 ? injectionMode : injectionMode+1);
+  if (injectors[injectionMode].show) {
+    unsigned count = 0;
+    for (unsigned i = 0 ; i < injectionMode ; i++) {
+      if (injectors[injectionMode].show)
+        count++;
+    }
+    displayNumber(numDisplayableModes >= 16 ? count : count+1);    
+  }
+  else {
+    displayNumber(0);
+  }
 }
 
 const uint8_t reportDescription[] = {
@@ -117,6 +128,11 @@ void setup() {
     pinMode(indicatorLEDs[i], OUTPUT);
   pinMode(downButton, INPUT_PULLDOWN);
   pinMode(upButton, INPUT_PULLDOWN);
+
+  numDisplayableModes = 0;
+  for (unsigned i=0; i<numInjectionModes; i++)
+    if (injectors[i].show)
+      numDisplayableModes++;
   
 #ifdef SERIAL_DEBUG
   displayNumber(3);
@@ -280,6 +296,17 @@ void pollFeatureRequests() {
   }
 }
 
+void adjustMode(int delta) {
+  do {
+    if (delta < 0 && injectionMode == 0)
+      injectionMode = numInjectionModes;
+    injectionMode += delta;
+    injectionMode %= numInjectionModes; 
+  } while (! injectors[injectionMode].show);
+  lastChangedModeTime = millis();
+  updateDisplay();
+}
+
 void loop() {
   GameCubeData_t data;
   GameCubeData_t data2;
@@ -305,18 +332,11 @@ void loop() {
     t0 = millis();
     do {
       if (debounceDown.wasReleased()) {
-        if (injectionMode == 0)
-          injectionMode = numInjectionModes-1;
-        else
-          injectionMode--;
-        lastChangedModeTime = millis();
-        updateDisplay();
+        adjustMode(-1);
       }
       
       if (debounceUp.wasPressed()) {
-        injectionMode = (injectionMode+1) % numInjectionModes;
-        lastChangedModeTime = millis();
-        updateDisplay();
+        adjustMode(1);
   #ifdef SERIAL_DEBUG      
         Serial.println("Changed to "+String(injectionMode));
   #endif

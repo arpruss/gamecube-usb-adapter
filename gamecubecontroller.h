@@ -165,6 +165,7 @@ typedef struct {
   int32_t exerciseMachineMultiplier; // 64 = default speed ; higher is faster
   const char* commandName;
   const char* description; // no more than 61 characters
+  bool show;
 } Injector_t;
 
 
@@ -257,6 +258,27 @@ const InjectedButton_t dpadWASDButtons[numberOfButtons] = {
     { KEY,   {.key = 'a' } },           // virtual left
     { KEY,   {.key = 'd' } },           // virtual right
     { KEY,   {.key = 's' } },           // virtual down
+    { KEY,   {.key = 'w' } },           // virtual up
+};
+
+const InjectedButton_t dpadWASZButtons[numberOfButtons] = {
+    { KEY, {.key = ' '} },          // A
+    { KEY, {.key = KEY_RETURN} },   // B
+    { 0,   {.key = 0 } },           // X
+    { 0,   {.key = 0 } },           // Y
+    { 0,   {.key = 0 } },           // Start
+    { KEY, {.key = 'a' } },         // DLeft
+    { KEY, {.key = 's' } },         // DRight
+    { KEY, {.key = 'z' } },         // DDown
+    { KEY, {.key = 'w' } },         // DUp
+    { 0,   {.key = 0 } },           // Z
+    { 0,   {.key = 0 } },           // right shoulder button
+    { 0,   {.key = 0 } },           // left shoulder button
+    { 0,   {.key = 0 } },           // right shoulder button partial
+    { 0,   {.key = 0 } },           // left shoulder button partial
+    { KEY,   {.key = 'a' } },           // virtual left
+    { KEY,   {.key = 's' } },           // virtual right
+    { KEY,   {.key = 'z' } },           // virtual down
     { KEY,   {.key = 'w' } },           // virtual up
 };
 
@@ -381,24 +403,25 @@ const USBMode_t modeDualJoystick = {
 };
 
 const Injector_t injectors[] = {
-  { &modeUSBHID, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 64, "defaultUnified", "joystick, unified shoulder, speed 100%" },
-  { &modeUSBHID, defaultJoystickButtons, joystickDualShoulder, exerciseMachineSliders, 40, "defaultDual", "joystick, dual shoulders, speed 63%" },
-  { &modeUSBHID, jetsetJoystickButtons, joystickNoShoulder, exerciseMachineSliders, 64, "jetset", "Jet Set Radio" },
-  { &modeUSBHID, dpadWASDButtons, NULL, exerciseMachineSliders, 64, "wasd", "WASD" },
-  { &modeUSBHID, dpadArrowWithCTRL, NULL, exerciseMachineSliders, 64, "dpadArrowCtrl", "Arrow keys with A=CTRL" },
-  { &modeUSBHID, dpadArrowWithSpace, NULL, exerciseMachineSliders, 64, "dpadArrowSpace", "Arrow keys with A=SPACE" },  
-  { &modeUSBHID, dpadQBert, NULL, exerciseMachineSliders, 64, "dpadQBert", "QBert with dpad" },  
-  { &modeUSBHID, dpadMC, NULL, exerciseMachineSliders, 64, "dpadMC", "Minecraft with dpad" },  
+  { &modeUSBHID, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 64, "defaultUnified", "joystick, unified shoulder, speed 100%", true },
+  { &modeUSBHID, defaultJoystickButtons, joystickDualShoulder, exerciseMachineSliders, 40, "defaultDual", "joystick, dual shoulders, speed 63%", true },
+  { &modeUSBHID, jetsetJoystickButtons, joystickNoShoulder, exerciseMachineSliders, 64, "jetset", "Jet Set Radio", true },
+  { &modeUSBHID, dpadWASDButtons, NULL, exerciseMachineSliders, 64, "wasd", "WASD", true },
+  { &modeUSBHID, dpadArrowWithCTRL, NULL, exerciseMachineSliders, 64, "dpadArrowCtrl", "Arrow keys with A=CTRL", true },
+  { &modeUSBHID, dpadArrowWithSpace, NULL, exerciseMachineSliders, 64, "dpadArrowSpace", "Arrow keys with A=SPACE", true },  
+  { &modeUSBHID, dpadQBert, NULL, exerciseMachineSliders, 64, "dpadQBert", "QBert with dpad", true },  
+  { &modeUSBHID, dpadMC, NULL, exerciseMachineSliders, 64, "dpadMC", "Minecraft with dpad", true },  
 #ifdef ENABLE_EXERCISE_MACHINE
-  { &modeUSBHID, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 96, "default96", "joystick, unified shoulder, speed 150%" },  
-  { &modeUSBHID, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 128, "default128", "joystick, unified shoulder, speed 200%" },  
-  { &modeUSBHID, defaultJoystickButtons, joystickDualShoulder, directionSwitchSlider, 64, "directionSwitch", "joystick, direction switch controls sliders" },
+  { &modeUSBHID, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 96, "default96", "joystick, unified shoulder, speed 150%", true },  
+  { &modeUSBHID, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 128, "default128", "joystick, unified shoulder, speed 200%", true },  
+  { &modeUSBHID, defaultJoystickButtons, joystickDualShoulder, directionSwitchSlider, 64, "directionSwitch", "joystick, direction switch controls sliders", true },
 #endif
-  { &modeUSBHID, dpadZX, NULL, exerciseMachineSliders, 64, "dpadZX", "Arrow keys with A=Z, B=X" },
-  { &modeX360, defaultXBoxButtons, joystickDualShoulder, exerciseMachineSliders, 64, "xbox360", "XBox360, speed 100%" },
+  { &modeUSBHID, dpadZX, NULL, exerciseMachineSliders, 64, "dpadZX", "Arrow keys with A=Z, B=X", true },
+  { &modeX360, defaultXBoxButtons, joystickDualShoulder, exerciseMachineSliders, 64, "xbox360", "XBox360, speed 100%", true },
 #if defined(ENABLE_GAMECUBE) && defined(ENABLE_NUNCHUCK)
-  { &modeDualJoystick, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 64, "dual", "dual joystick" },
+  { &modeDualJoystick, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 64, "dual", "dual joystick", true },
 #endif  
+  { &modeUSBHID, dpadWASZButtons, NULL, exerciseMachineSliders, 64, "wasz", "WASZ", false },
 };
 
 const uint32_t numInjectionModes = sizeof(injectors)/sizeof(*injectors);
