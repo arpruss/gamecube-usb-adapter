@@ -1,10 +1,8 @@
 #include "gamecubecontroller.h"
 
-#ifndef SERIAL_DEBUG
-
 uint8_t prevButtons[numberOfButtons];
 uint8_t curButtons[numberOfButtons];
-GameCubeData_t oldData;
+GameControllerData_t oldData;
 bool didJoystick;
 bool didX360;
 const USBMode_t* usbMode;
@@ -19,12 +17,12 @@ void joySliderRight(uint16_t t) {
   curJoystick->sliderRight((1023-t)&1023);
 }
 
-void buttonizeStick4dir(uint8_t* buttons, uint8_t x, uint8_t y) {
-  uint8_t dx = x < 128 ? 128 - x : x - 128;
-  uint8_t dy = y < 128 ? 128 - y : y - 128;
+void buttonizeStick4Dir(uint8_t* buttons, uint16_t x, uint16_t y) {
+  uint32_t dx = x < 512 ? 512 - x : x - 512;
+  uint32_t dy = y < 512 ? 512 - y : y - 512;
   if (dx > dy) {
       if(dx > directionThreshold) {
-        if (x < 128) {
+        if (x < 512 ) {
           buttons[virtualLeft] = 1;
         }
         else {
@@ -33,7 +31,7 @@ void buttonizeStick4dir(uint8_t* buttons, uint8_t x, uint8_t y) {
       }
   }
   else if (dx < dy && dy > directionThreshold) {
-    if (y < 128) {
+    if (y >= 512) {
       buttons[virtualDown] = 1;
     }
     else {
@@ -44,72 +42,74 @@ void buttonizeStick4dir(uint8_t* buttons, uint8_t x, uint8_t y) {
 
 const uint32_t tan22_5 = 4142;
 
-void buttonizeStick(uint8_t* buttons, uint8_t x, uint8_t y) {
-  uint32_t dx = x < 128 ? 128 - x : x - 128;
-  uint32_t dy = y < 128 ? 128 - y : y - 128;
+void buttonizeStick(uint8_t* buttons, uint16_t x, uint16_t y) {
+  uint32_t dx = x < 512 ? 512 - x : x - 512;
+  uint32_t dy = y < 512 ? 512 - y : y - 512;
   uint32_t r2 = dx*dx+dy*dy;
   if (r2 <= directionThreshold*(uint32_t)directionThreshold)
     return;
   if (dy * 10000 < tan22_5 * dx) {
-    if (x<128)
+    if (x<512)
       buttons[virtualLeft]=1;
     else
       buttons[virtualRight]=1;
   }
   else if (dx * 10000 < dy * tan22_5) {
-    if (y<128)
+    if (y>=512)
       buttons[virtualDown]=1;
     else
       buttons[virtualUp]=1;
   }
   else {
-    if (x<128)
+    if (x<512)
       buttons[virtualLeft]=1;
     else
       buttons[virtualRight]=1;
-    if (y<128)
+    if (y>=512)
       buttons[virtualDown]=1;
     else
       buttons[virtualUp]=1;
   }
 }
 
-void toButtonArray(uint8_t* buttons, const GameCubeData_t* data) {
+void toButtonArray(uint8_t* buttons, const GameControllerData_t* data, uint8 directions) {
   for (int i=0; i<numberOfHardButtons; i++)
     buttons[i] = 0 != (data->buttons & buttonMasks[i]);
   buttons[virtualShoulderRightPartial] = data->shoulderRight>=shoulderThreshold;
   buttons[virtualShoulderLeftPartial] = data->shoulderLeft>=shoulderThreshold;
   buttons[virtualLeft] = buttons[virtualRight] = buttons[virtualDown] = buttons[virtualUp] = 0;
-  buttonizeStick(buttons, data->joystickX, data->joystickY);
-  buttonizeStick(buttons, data->cX, data->cY); 
+  if (directions==4) {
+    buttonizeStick4Dir(buttons, data->joystickX, data->joystickY);
+    buttonizeStick4Dir(buttons, data->cX, data->cY); 
+  }
+  else {
+    buttonizeStick(buttons, data->joystickX, data->joystickY);
+    buttonizeStick(buttons, data->cX, data->cY);     
+  }
 }
 
-inline uint16_t range8u10u(uint8_t x) {
-  return (((uint16_t)x) << 2)+1;
+inline int16_t range10u16s(uint8_t x) {
+  return (((int32_t)(uint32_t)x-512)*32767+255)/512;
 }
 
-inline int16_t range8u16s(uint8_t x) {
-  return (((int32_t)(uint32_t)x-128)*32767+64)/127;
-}
-
-void joystickBasic(const GameCubeData_t* data) {
+void joystickBasic(const GameControllerData_t* data) {
     if (usbMode != &modeX360) {
       didJoystick = true;
-      curJoystick->X(range8u10u(data->joystickX));
-      curJoystick->Y(range8u10u(255-data->joystickY));
-      curJoystick->Xrotate(range8u10u(data->cX));
-      curJoystick->Yrotate(range8u10u(255-data->cY));
+      curJoystick->X(data->joystickX);
+      curJoystick->Y(data->joystickY);
+      curJoystick->Xrotate(data->cX);
+      curJoystick->Yrotate(data->cY);
     }
     else {
       didX360 = true;
-      XBox360.X(range8u16s(data->joystickX));
-      XBox360.Y(-range8u16s(255-data->joystickY));
-      XBox360.XRight(range8u16s(data->cX));
-      XBox360.YRight(-range8u16s(255-data->cY));
+      XBox360.X(range10u16s(data->joystickX));
+      XBox360.Y(range10u16s(data->joystickY));
+      XBox360.XRight(range10u16s(data->cX));
+      XBox360.YRight(range10u16s(data->cY));
     }
 }
 
-void joystickPOV(const GameCubeData_t* data) {
+void joystickPOV(const GameControllerData_t* data) {
     if (usbMode == &modeX360)
       return;
     didJoystick = true;
@@ -178,27 +178,27 @@ uint16_t getExerciseMachineSpeed(const ExerciseMachineData_t* exerciseMachineP, 
 #endif
 }
 
-void joystickDualShoulder(const GameCubeData_t* data) {
+void joystickDualShoulder(const GameControllerData_t* data) {
     joystickBasic(data);
     joystickPOV(data);
     if (usbMode != &modeX360) {
-      joySliderLeft(range8u10u(data->shoulderLeft));
-      joySliderRight(range8u10u(data->shoulderRight));
+      joySliderLeft(data->shoulderLeft);
+      joySliderRight(data->shoulderRight);
       didJoystick = true;
     }
     else {
-      XBox360.sliderLeft(data->shoulderLeft);
-      XBox360.sliderRight(data->shoulderRight);
+      XBox360.sliderLeft(data->shoulderLeft/4);
+      XBox360.sliderRight(data->shoulderRight/4);
       didX360 = true;
     }
 }
 
-void exerciseMachineSliders(const GameCubeData_t* data, const ExerciseMachineData_t* exerciseMachineP, int32_t multiplier) {
+void exerciseMachineSliders(const GameControllerData_t* data, const ExerciseMachineData_t* exerciseMachineP, int32_t multiplier) {
 #ifdef ENABLE_EXERCISE_MACHINE
-    if (debounceDown.getRawState() && data->device == DEVICE_NUNCHUCK) {
+    if (debounceDown.getRawState() && data->device == CONTROLLER_NUNCHUCK) {
       // useful for calibration and settings for games: when downButton is pressed, joystickY controls both sliders
-      if (data->joystickY >= 128+40 || data->joystickY <= 128-40) {
-        int32_t delta = ((int32_t)data->joystickY - 128) * 49 / 10;
+      if (data->joystickY >= 512 + 160 || data->joystickY <= 512 - 160) {
+        int32_t delta = -((int32_t)data->joystickY - 512) * 49 / 40;
         uint16_t out;
         if (delta <= -511)
           out = 0;
@@ -221,7 +221,7 @@ void exerciseMachineSliders(const GameCubeData_t* data, const ExerciseMachineDat
        }
     }
     uint16_t datum = getExerciseMachineSpeed(exerciseMachineP, multiplier);
-    if(data->device == DEVICE_GAMECUBE && ! exerciseMachineP->valid)
+    if(data->device == CONTROLLER_GAMECUBE && ! exerciseMachineP->valid)
       return;
     if (usbMode != &modeX360) {
       joySliderLeft(datum);
@@ -242,7 +242,7 @@ void exerciseMachineSliders(const GameCubeData_t* data, const ExerciseMachineDat
 #endif
 }
 
-void directionSwitchSlider(const GameCubeData_t* data, const ExerciseMachineData_t* exerciseMachineP, int32_t multiplier) {
+void directionSwitchSlider(const GameControllerData_t* data, const ExerciseMachineData_t* exerciseMachineP, int32_t multiplier) {
     (void)multiplier;
     if (exerciseMachineP->direction) {
       if (usbMode != &modeX360) {
@@ -257,12 +257,12 @@ void directionSwitchSlider(const GameCubeData_t* data, const ExerciseMachineData
     }
 }
 
-void joystickUnifiedShoulder(const GameCubeData_t* data) {
+void joystickUnifiedShoulder(const GameControllerData_t* data) {
     joystickBasic(data);
     joystickPOV(data);
     
     uint16_t datum;
-    datum = 512+(data->shoulderRight-(int16_t)data->shoulderLeft)*2;
+    datum = 512+(data->shoulderRight-(int16_t)data->shoulderLeft)/2;
     if (usbMode != &modeX360) {
       joySliderLeft(datum);
       joySliderRight(datum);
@@ -273,12 +273,12 @@ void joystickUnifiedShoulder(const GameCubeData_t* data) {
     }
 }
 
-void joystickNoShoulder(const GameCubeData_t* data) {
+void joystickNoShoulder(const GameControllerData_t* data) {
     joystickBasic(data);
     joystickPOV(data);
 }
 
-void inject(HIDJoystick* joy, const Injector_t* injector, const GameCubeData_t* curDataP, const ExerciseMachineData_t* exerciseMachineP) {
+void inject(HIDJoystick* joy, const Injector_t* injector, const GameControllerData_t* curDataP, const ExerciseMachineData_t* exerciseMachineP) {
   curJoystick = joy;
   didJoystick = false;
   didX360 = false;
@@ -318,7 +318,7 @@ void inject(HIDJoystick* joy, const Injector_t* injector, const GameCubeData_t* 
   usbMode = injector->usbMode;
 
   memcpy(prevButtons, curButtons, sizeof(curButtons));
-  toButtonArray(curButtons, curDataP);
+  toButtonArray(curButtons, curDataP, injector->directions);
 
   for (int i=0; i<numberOfButtons; i++) {
     if (injector->buttons[i].mode == KEY) {
@@ -363,5 +363,4 @@ void inject(HIDJoystick* joy, const Injector_t* injector, const GameCubeData_t* 
     XBox360.send(); 
 }
 
-#endif
 

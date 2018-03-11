@@ -1,12 +1,13 @@
-// This requires this library: 
+// This requires these libraries: 
 //    https://github.com/arpruss/USBHID_stm32f1
+//    https://github.com/arpruss/GameControllersSTM32
 // Software steps:
 //    Install this bootloader: https://github.com/rogerclarkmelbourne/STM32duino-bootloader/blob/master/binaries/generic_boot20_pb12.bin?raw=true
 //    Instructions here: http://wiki.stm32duino.com/index.php?title=Burning_the_bootloader#Flashing_the_bootloader_onto_the_Black_Pill_via_UART_using_a_Windows_machine/  
 //    Install official Arduino Zero board
 //    Put the contents of the above branch in your Arduino/Hardware folder
 //    If on Windows, run drivers\win\install_drivers.bat
-//    Install the USBHID_stm32f1 library.
+//    Install the USBHID_stm32f1 and GameControllersSTM32 libraries.
 // Note: You may need to adjust permissions on some of the dll, exe and bat files.
 
 // Facing GameCube socket (as on console), flat on top:
@@ -43,6 +44,7 @@
 // PB6--SCL
 // PB7--SDA
 
+#include <GameControllers.h>
 #include <stdlib.h>
 #include <libmaple/iwdg.h>
 #include <libmaple/usb_cdcacm.h>
@@ -50,6 +52,8 @@
 #include "debounce.h"
 #include "gamecubecontroller.h"
 
+NunchuckController nunchuck;
+GameCubeController gc(gcPinID);
 Debounce debounceDown(downButton, HIGH);
 Debounce debounceUp(upButton, HIGH);
 unsigned numDisplayableModes = 0;
@@ -134,19 +138,15 @@ void setup() {
     if (injectors[i].show)
       numDisplayableModes++;
   
-#ifdef SERIAL_DEBUG
-  displayNumber(3);
-  delay(4000);
-  Serial.println("gamecube controller adapter");
-#endif
+  DEBUG("gamecube controller adapter");
 
   exerciseMachineInit();
 
 #ifdef ENABLE_GAMECUBE
-  gameCubeInit();
+  gc.begin();
 #endif
 #ifdef ENABLE_NUNCHUCK
-  nunchuckInit();
+  nunchuck.begin();
 #endif
 
   debounceDown.begin();
@@ -177,7 +177,7 @@ void setup() {
 
 //uint8_t poorManPWM = 0;
 void updateLED(void) {
-  if (((validDevices[0] != DEVICE_NONE) ^ exerciseMachineRotationDetector) && validUSB) {
+  if (((validDevices[0] != CONTROLLER_NONE) ^ exerciseMachineRotationDetector) && validUSB) {
         gpio_write_bit(ledPort, ledPin, 0); //poorManPWM);
     //poorManPWM ^= 1;
   }
@@ -185,34 +185,36 @@ void updateLED(void) {
     gpio_write_bit(ledPort, ledPin, 1);
     //analogWrite(ledPinID, 255);
   }
-  //gpio_write_bit(ledPort, ledPin, ! (((validDevice != DEVICE_NONE) ^ exerciseMachineRotationDetector) && validUSB));
+  //gpio_write_bit(ledPort, ledPin, ! (((validDevice != CONTROLLER_NONE) ^ exerciseMachineRotationDetector) && validUSB));
 }
 
-static uint8_t receiveReport(GameCubeData_t* data, uint8_t deviceNumber) {
+static uint8_t receiveReport(GameControllerData_t* data, uint8_t deviceNumber) {
   uint8_t success;
-  uint8_t reservedDevice = deviceNumber > 0 ? validDevices[0] : DEVICE_NONE;
+  uint8_t reservedDevice = deviceNumber > 0 ? validDevices[0] : CONTROLLER_NONE;
   uint8_t validDevice = validDevices[deviceNumber];
 
 #ifdef ENABLE_GAMECUBE
-  if (reservedDevice != DEVICE_GAMECUBE && ( validDevices[deviceNumber] == DEVICE_GAMECUBE || validDevice == DEVICE_NONE) ) {
-    success = gameCubeReceiveReport(data);
+  if (reservedDevice != CONTROLLER_GAMECUBE && ( validDevices[deviceNumber] == CONTROLLER_GAMECUBE || validDevice == CONTROLLER_NONE) ) {
+    DEBUG("Trying gamecube");
+    success = gc.read(data);
     if (success) {
-      validDevices[deviceNumber] = DEVICE_GAMECUBE;
+      DEBUG("Success");
+      validDevices[deviceNumber] = CONTROLLER_GAMECUBE;
       return 1;
     }
-    validDevice = DEVICE_NONE;
+    validDevice = CONTROLLER_NONE;
   }
 #endif
 #ifdef ENABLE_NUNCHUCK
-  if (reservedDevice != DEVICE_NUNCHUCK && ( validDevice == DEVICE_NUNCHUCK || nunchuckDeviceInit())) {
-    success = nunchuckReceiveReport(data);
+  if (reservedDevice != CONTROLLER_NUNCHUCK && ( validDevice == CONTROLLER_NUNCHUCK || nunchuck.begin())) {
+    success = nunchuck.read(data);
     if (success) {
-      validDevices[deviceNumber] = DEVICE_NUNCHUCK;
+      validDevices[deviceNumber] = CONTROLLER_NUNCHUCK;
       return 1;
     }
   }
 #endif
-  validDevices[deviceNumber] = DEVICE_NONE;
+  validDevices[deviceNumber] = CONTROLLER_NONE;
 
   data->joystickX = 128;
   data->joystickY = 128;
@@ -221,7 +223,7 @@ static uint8_t receiveReport(GameCubeData_t* data, uint8_t deviceNumber) {
   data->buttons = 0;
   data->shoulderLeft = 0;
   data->shoulderRight = 0;
-  data->device = DEVICE_NONE;
+  data->device = CONTROLLER_NONE;
 
   return 0;
 }
@@ -308,8 +310,8 @@ void adjustMode(int delta) {
 }
 
 void loop() {
-  GameCubeData_t data;
-  GameCubeData_t data2;
+  GameControllerData_t data;
+  GameControllerData_t data2;
   ExerciseMachineData_t exerciseMachine;
   bool dual = false;
 
@@ -337,9 +339,7 @@ void loop() {
       
       if (debounceUp.wasPressed()) {
         adjustMode(1);
-  #ifdef SERIAL_DEBUG      
-        Serial.println("Changed to "+String(injectionMode));
-  #endif
+        DEBUG("Changed to "+String(injectionMode));
       }
       updateLED();
     } while((millis()-t0) < 6);
@@ -350,9 +350,7 @@ void loop() {
   exerciseMachineUpdate(&exerciseMachine);
       
   if (savedInjectionMode != injectionMode && (millis()-lastChangedModeTime) >= saveInjectionModeAfterMillis) {
-#ifdef SERIAL_DEBUG
-    Serial.println("Need to store");
-#endif
+    DEBUG("Need to store");
     EEPROM8_storeValue(EEPROM_VARIABLE_INJECTION_MODE, injectionMode);
     savedInjectionMode = injectionMode;
   }
@@ -376,19 +374,13 @@ void loop() {
   receiveReport(&data,0);
   if (dual)
     dual = (bool)receiveReport(&data2,1);
-#ifdef SERIAL_DEBUG
-//  Serial.println("buttons1 = "+String(data.buttons));  
-  Serial.println("joystick = "+String(data.joystickX)+","+String(data.joystickY));  
-//  Serial.println("c-stick = "+String(data.cX)+","+String(data.cY));  
-//  Serial.println("shoulders = "+String(data.shoulderLeft)+","+String(data.shoulderRight));      
-#else
-  if (usb_is_connected(USBLIB) && usb_is_configured(USBLIB)) {
+  DEBUG("joystick = "+String(data.joystickX)+","+String(data.joystickY));  
+  if (USBComposite.isReady()) {
     inject(&Joystick, injectors + injectionMode, &data, &exerciseMachine);
     if (dual) {
       inject(&Joystick2, injectors + injectionMode, &data2, &exerciseMachine);
     }
-}
-#endif
+  }
     
   updateLED();
 }

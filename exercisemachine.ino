@@ -52,7 +52,6 @@ void exerciseMachineUpdate(ExerciseMachineData_t* data) {
   }
 
   if (exerciseMachinePulsed) {
-//    Serial.println("Pulse");
     exerciseMachinePulsed = false;
     exerciseMachineRotationDetector = 1;
     updateLED();
@@ -76,9 +75,7 @@ void exerciseMachineUpdate(ExerciseMachineData_t* data) {
   
   data->speed = exerciseMachineSpeed;
   data->direction = debounceDirection.getState();
-#ifdef SERIAL_DEBUG
-  Serial.println("Speed "+String(data->speed));
-#endif    
+  DEBUG("Speed "+String(data->speed));
 #else
   data->speed = 0;
   data->direction = 1;
