@@ -88,7 +88,7 @@ void toButtonArray(uint8_t* buttons, const GameControllerData_t* data, uint8 dir
   }
 }
 
-inline int16_t range10u16s(uint8_t x) {
+inline int16_t range10u16s(uint16_t x) {
   return (((int32_t)(uint32_t)x-512)*32767+255)/512;
 }
 
@@ -103,9 +103,9 @@ void joystickBasic(const GameControllerData_t* data) {
     else {
       didX360 = true;
       XBox360.X(range10u16s(data->joystickX));
-      XBox360.Y(range10u16s(data->joystickY));
+      XBox360.Y(-range10u16s(data->joystickY));
       XBox360.XRight(range10u16s(data->cX));
-      XBox360.YRight(range10u16s(data->cY));
+      XBox360.YRight(-range10u16s(data->cY));
     }
 }
 
