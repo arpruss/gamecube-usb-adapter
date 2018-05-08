@@ -32,9 +32,9 @@ static boolean invalid = true;
 static uint8_t currentPage = 0;
 
 #define EEPROM8_MEMORY_SIZE (2*EEPROM_PAGE_SIZE)
-#define GET_BYTE(address) (*(__io uint8_t*)(address))
-#define GET_HALF_WORD(address) (*(__io uint16_t*)(address))
-#define GET_WORD(address) (*(__io uint32_t*)(address))
+#define GET_BYTE(address) (*(__IO uint8_t*)(address))
+#define GET_HALF_WORD(address) (*(__IO uint16_t*)(address))
+#define GET_WORD(address) (*(__IO uint32_t*)(address))
 
 #define EEPROM8_MAGIC (uint32_t)0x1b70f1cd
 
