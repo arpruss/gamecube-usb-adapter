@@ -83,9 +83,12 @@ const uint8_t reportDescription[] = {
    HID_KEYBOARD_REPORT_DESCRIPTOR(),
    HID_JOYSTICK_REPORT_DESCRIPTOR(HID_JOYSTICK_REPORT_ID, 
         HID_FEATURE_REPORT_DESCRIPTOR(FEATURE_DATA_SIZE))
+        ,
 };
 
 const uint8_t dualJoystickReportDescription[] = {
+   HID_MOUSE_REPORT_DESCRIPTOR(),
+   HID_KEYBOARD_REPORT_DESCRIPTOR(),
    HID_JOYSTICK_REPORT_DESCRIPTOR(HID_JOYSTICK_REPORT_ID, 
         HID_FEATURE_REPORT_DESCRIPTOR(FEATURE_DATA_SIZE)),
    HID_JOYSTICK_REPORT_DESCRIPTOR(HID_JOYSTICK_REPORT_ID+1)
@@ -120,8 +123,9 @@ void beginDual() {
   USBComposite.setProductId(PRODUCT_ID_DUAL);  
 #ifdef SERIAL_DEBUG
   USBHID_begin_with_serial(dualJoystickReportDescription,sizeof(dualJoystickReportDescription));
-#elseb
+#else
   USBHID.begin(dualJoystickReportDescription,sizeof(dualJoystickReportDescription));
+//  USBHID.begin(reportDescription,sizeof(reportDescription));
 #endif
   USBHID.addFeatureBuffer(&fb);
   Joystick.setManualReportMode(true);
