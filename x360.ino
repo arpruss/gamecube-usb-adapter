@@ -30,6 +30,7 @@ void detectModeSwitch(uint8 left, uint8 right) {
 }
 
 void beginX360() {
+ USBComposite.setProductString("XBox360 controller emulator");
  XBox360.begin();
  XBox360.setManualReportMode(true);
  XBox360.setRumbleCallback(detectModeSwitch);

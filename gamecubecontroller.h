@@ -13,11 +13,15 @@
 # define DEBUG(...)
 #endif
 
+#define VENDOR_ID 0x1EAF
+#define PRODUCT_ID_SINGLE 0xe167 
+#define PRODUCT_ID_DUAL   0xe168
+
 #define FEATURE_DATA_SIZE 63
 
 #define ENABLE_GAMECUBE
 #define ENABLE_NUNCHUCK
-//#define ENABLE_EXERCISE_MACHINE
+#define ENABLE_EXERCISE_MACHINE
 
 #define EEPROM_VARIABLE_INJECTION_MODE 0
 
@@ -93,7 +97,7 @@ const uint32_t saveInjectionModeAfterMillis = 15000ul; // only save a mode if it
 
 const uint32_t gcPinID = PA6;
 
-uint32_t injectionMode = 0;
+int32_t injectionMode = 0;
 uint32_t savedInjectionMode = 0;
 uint32_t lastChangedModeTime;
 
@@ -415,7 +419,7 @@ const Injector_t injectors[] {
   { &modeUSBHID, dpadZX, NULL, exerciseMachineSliders, 64, "dpadZX", "Arrow keys with A=Z, B=X", 8, true },
   { &modeX360, defaultXBoxButtons, joystickDualShoulder, exerciseMachineSliders, 64, "xbox360", "XBox360, speed 100%", 8, true },
 #if defined(ENABLE_GAMECUBE) && defined(ENABLE_NUNCHUCK)
-  { &modeDualJoystick, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 64, "dual", "dual joystick", 8, true },
+//  { &modeDualJoystick, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 64, "dual", "dual joystick", 8, true }, // TODO: BROKEN!
 #endif  
   { &modeUSBHID, dpadWASZButtons, NULL, exerciseMachineSliders, 64, "wasz", "WASZ", 4, false },
 };

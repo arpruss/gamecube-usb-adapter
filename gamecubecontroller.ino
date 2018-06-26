@@ -68,7 +68,7 @@ void updateDisplay() {
   if (injectors[injectionMode].show) {
     unsigned count = 0;
     for (unsigned i = 0 ; i < injectionMode ; i++) {
-      if (injectors[injectionMode].show)
+      if (injectors[i].show)
         count++;
     }
     displayNumber(numDisplayableModes >= 16 ? count : count+1);    
@@ -97,10 +97,13 @@ volatile HIDBuffer_t fb { featureBuffer, HID_BUFFER_SIZE(FEATURE_DATA_SIZE,1), H
 HIDJoystick Joystick2(HID_JOYSTICK_REPORT_ID+1);
 
 void beginUSBHID() {
+  USBComposite.setProductString("Multiadapter Single Joystick");
+  USBComposite.setVendorId(VENDOR_ID);
+  USBComposite.setProductId(PRODUCT_ID_SINGLE);  
 #ifdef SERIAL_DEBUG
-  USBHID_begin_with_serial(reportDescription,sizeof(reportDescription),0,0x25);
+  USBHID_begin_with_serial(reportDescription,sizeof(reportDescription));
 #else
-  USBHID.begin(reportDescription,sizeof(reportDescription),0,0x25);
+  USBHID.begin(reportDescription,sizeof(reportDescription));
 #endif
   USBHID.addFeatureBuffer(&fb);
   Joystick.setManualReportMode(true);
@@ -112,10 +115,13 @@ void endUSBHID() {
 }
 
 void beginDual() {
+  USBComposite.setProductString("Multiadapter Dual Joystick");
+  USBComposite.setVendorId(VENDOR_ID);
+  USBComposite.setProductId(PRODUCT_ID_DUAL);  
 #ifdef SERIAL_DEBUG
-  USBHID_begin_with_serial(dualJoystickReportDescription,sizeof(dualJoystickReportDescription),0,0x26);
-#else
-  USBHID.begin(dualJoystickReportDescription,sizeof(dualJoystickReportDescription),0,0x26);
+  USBHID_begin_with_serial(dualJoystickReportDescription,sizeof(dualJoystickReportDescription));
+#elseb
+  USBHID.begin(dualJoystickReportDescription,sizeof(dualJoystickReportDescription));
 #endif
   USBHID.addFeatureBuffer(&fb);
   Joystick.setManualReportMode(true);
@@ -128,6 +134,7 @@ void endDual() {
 }
 
 void setup() {
+  USBComposite.setVendorId(VENDOR_ID);
   for (int i=0; i<numIndicators; i++)
     pinMode(indicatorLEDs[i], OUTPUT);
   pinMode(downButton, INPUT_PULLDOWN);
