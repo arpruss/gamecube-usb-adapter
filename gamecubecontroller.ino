@@ -166,7 +166,11 @@ void setup() {
   pinMode(ledPinID, OUTPUT);
 
   EEPROM8_init();
-  int i = EEPROM8_getValue(EEPROM_VARIABLE_INJECTION_MODE);
+  int i;
+  if (debounceDown.getRawState() && debounceUp.getRawState())
+    i = 0;
+  else
+    i = EEPROM8_getValue(EEPROM_VARIABLE_INJECTION_MODE);
   if (i < 0)
     injectionMode = 0;
   else
