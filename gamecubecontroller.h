@@ -1,6 +1,8 @@
 #ifndef _GAMECUBE_H
 #define _GAMECUBE_H
 
+#undef ALEXS_BUILD
+
 #undef SERIAL_DEBUG
 
 #include <USBHID.h>
@@ -13,6 +15,8 @@
 # define DEBUG(...)
 #endif
 
+#define MAX_RUMBLE_TIME 10000
+
 #define VENDOR_ID 0x1EAF
 #define PRODUCT_ID_SINGLE 0xe167 
 #define PRODUCT_ID_DUAL   0xe170
@@ -21,7 +25,9 @@
 
 #define ENABLE_GAMECUBE
 #define ENABLE_NUNCHUCK
-//#define ENABLE_EXERCISE_MACHINE
+#ifdef ALEXS_BUILD
+#define ENABLE_EXERCISE_MACHINE
+#endif
 
 #define EEPROM_VARIABLE_INJECTION_MODE 0
 
@@ -74,6 +80,9 @@ uint8_t validDevices[2] = {CONTROLLER_NONE,CONTROLLER_NONE};
 uint8_t validUSB = 0;
 volatile bool exitX360Mode = false;
 uint8_t exerciseMachineRotationDetector = 0;
+extern uint8_t leftMotor;
+extern uint8_t rightMotor;
+extern uint32_t lastRumbleOff;
  
 const uint32_t watchdogSeconds = 10;
 
@@ -84,8 +93,13 @@ const uint32_t indicatorLEDs[] = { PA0, PA1, PA2, PA3 };
 const uint8_t ledBrightnessLevels[] = {20,20,20,20}; 
 //const uint8_t ledBrightnessLevels[] = { 30, 30, 30, 150 }; // my PA3 LED is dimmer for some reason
 const int numIndicators = sizeof(indicatorLEDs)/sizeof(*indicatorLEDs);
-const uint32_t downButton = PA4;
+#ifdef ALEXS_BUILD
+const uint32_t downButton = PA5;
+const uint32_t upButton = PA4;
+#else
 const uint32_t upButton = PA5;
+const uint32_t downButton = PA4;
+#endif
 const uint32_t rotationDetector = PA7;
 const uint32_t directionSwitch = PA8; // TODO: change to PA9 with screen
 
@@ -163,6 +177,7 @@ typedef struct {
   const char* description; // no more than 61 characters
   uint8 directions;
   bool show;
+  bool rumble;
 } Injector_t;
 
 
@@ -417,7 +432,8 @@ const Injector_t injectors[] {
   { &modeUSBHID, defaultJoystickButtons, joystickDualShoulder, directionSwitchSlider, 64, "directionSwitch", "joystick, direction switch controls sliders", 8, true },
 #endif
   { &modeUSBHID, dpadZX, NULL, exerciseMachineSliders, 64, "dpadZX", "Arrow keys with A=Z, B=X", 8, true },
-  { &modeX360, defaultXBoxButtons, joystickDualShoulder, exerciseMachineSliders, 64, "xbox360", "XBox360, speed 100%", 8, true },
+  { &modeX360, defaultXBoxButtons, joystickDualShoulder, exerciseMachineSliders, 64, "xbox360", "XBox360, speed 100%, vibrate", 8, true, true },
+  { &modeX360, defaultXBoxButtons, joystickDualShoulder, exerciseMachineSliders, 64, "xbox360nv", "XBox360, speed 100%, no vibrate", 8, false, false },
 #if defined(ENABLE_GAMECUBE) && defined(ENABLE_NUNCHUCK)
   { &modeDualJoystick, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 64, "dual", "dual joystick", 8, true }, // TODO: BROKEN!
 #endif  

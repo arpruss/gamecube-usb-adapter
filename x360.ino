@@ -7,6 +7,9 @@ static uint32 xMessagePos = 0;
 void detectModeSwitch(uint8 left, uint8 right) {
   static uint32 lastRumble = 0;
 
+  leftMotor = left;
+  rightMotor = right;
+
   if (millis()-lastRumble > 2000) {
     xMessagePos = 0;
   }
@@ -19,6 +22,8 @@ void detectModeSwitch(uint8 left, uint8 right) {
       xMessagePos = 0;
       for (uint32 i=0; i<numInjectionModes; i++) {
         if (injectors[i].usbMode != &modeX360) {
+          leftMotor = 0;
+          rightMotor = 0;
           injectionMode = i;
           lastChangedModeTime = millis();
           updateDisplay();

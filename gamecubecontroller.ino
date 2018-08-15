@@ -22,10 +22,10 @@
 // GameCube 4--GND
 // GameCube 6--3.3V
 // Put a 10 uF and 0.1 uF capacitor between 3.3V and GND right on the black pill board.
-// optional: connect GameCube 1--5V (rumble, make sure there is enough current)
+// optional: connect GameCube 1--5V (rumble, make sure there is enough current; you can also try 3.3V if you want)
 
 // Put LEDs + resistors (100-220 ohm) between PA0,PA1,PA2,PA3 and 3.3V
-// Put momentary pushbuttons between PA4 (decrement),PA5 (increment) and 3.3V
+// Put momentary pushbuttons between PA4 (increment),PA5 (decrement) and 3.3V
 
 // Connections for exerciseMachine/bike:
 // GND--GND
@@ -57,6 +57,9 @@ GameCubeController gc(gcPinID);
 Debounce debounceDown(downButton, HIGH);
 Debounce debounceUp(upButton, HIGH);
 unsigned numDisplayableModes = 0;
+uint8 leftMotor = 0;
+uint8 rightMotor = 0; 
+uint32 lastRumbleOff = 0;
 
 void displayNumber(uint8_t x) {
   for (int i=0; i<numIndicators; i++, x>>=1) 
@@ -207,20 +210,29 @@ static uint8_t receiveReport(GameControllerData_t* data, uint8_t deviceNumber) {
   uint8_t success;
   uint8_t reservedDevice = deviceNumber > 0 ? validDevices[0] : CONTROLLER_NONE;
   uint8_t validDevice = validDevices[deviceNumber];
+  bool rumble;
 
 #ifdef ENABLE_GAMECUBE
   if (reservedDevice != CONTROLLER_GAMECUBE && ( validDevices[deviceNumber] == CONTROLLER_GAMECUBE || validDevice == CONTROLLER_NONE) ) {
     DEBUG("Trying gamecube");
-    success = gc.read(data);
+    
+    rumble = injectors[injectionMode].rumble && (leftMotor || rightMotor);
+    
+    if (! rumble)
+      lastRumbleOff = millis();
+    else if (rumble && millis() - lastRumbleOff >= MAX_RUMBLE_TIME)
+      rumble = false;
+      
+    success = gc.readWithRumble(data, rumble);
     if (success) {
       DEBUG("Success");
       validDevices[deviceNumber] = CONTROLLER_GAMECUBE;
       return 1;
-    }
+    } 
     validDevice = CONTROLLER_NONE;
   }
 #endif
-#ifdef ENABLE_NUNCHUCK
+#ifdef xENABLE_NUNCHUCK
   if (reservedDevice != CONTROLLER_NUNCHUCK && ( validDevice == CONTROLLER_NUNCHUCK || nunchuck.begin())) {
     success = nunchuck.read(data);
     if (success) {
@@ -231,16 +243,16 @@ static uint8_t receiveReport(GameControllerData_t* data, uint8_t deviceNumber) {
 #endif
   validDevices[deviceNumber] = CONTROLLER_NONE;
 
-  data->joystickX = 128;
-  data->joystickY = 128;
-  data->cX = 128;
-  data->cY = 128;
+  data->joystickX = 512;
+  data->joystickY = 512;
+  data->cX = 512;
+  data->cY = 512;
   data->buttons = 0;
   data->shoulderLeft = 0;
   data->shoulderRight = 0;
   data->device = CONTROLLER_NONE;
 
-  return 0;
+  return 1;
 }
 
 void setFeature(const void* s) {
@@ -321,6 +333,8 @@ void adjustMode(int delta) {
     injectionMode %= numInjectionModes; 
   } while (! injectors[injectionMode].show);
   lastChangedModeTime = millis();
+  leftMotor = 0;
+  rightMotor = 0;
   updateDisplay();
 }
 
@@ -399,3 +413,4 @@ void loop() {
     
   updateLED();
 }
+
