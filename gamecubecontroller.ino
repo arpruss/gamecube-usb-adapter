@@ -218,10 +218,19 @@ static uint8_t receiveReport(GameControllerData_t* data, uint8_t deviceNumber) {
     
     rumble = injectors[injectionMode].rumble && (leftMotor || rightMotor);
     
-    if (! rumble)
+    if (! rumble) {
       lastRumbleOff = millis();
-    else if (rumble && millis() - lastRumbleOff >= MAX_RUMBLE_TIME)
-      rumble = false;
+    }
+    else {
+      uint32_t delta = millis() - lastRumbleOff;
+      if (delta >= MAX_RUMBLE_TIME)
+        rumble = false;
+      else {
+        // do a poor man's PWM to adjust rumble speed
+        uint32_t dutyCycle = 35 + ((uint32_t)leftMotor+2*(uint32_t)rightMotor)*65/(255*3);
+        rumble = (delta % 100) <= dutyCycle;
+      }
+    }
       
     success = gc.readWithRumble(data, rumble);
     if (success) {
@@ -232,7 +241,7 @@ static uint8_t receiveReport(GameControllerData_t* data, uint8_t deviceNumber) {
     validDevice = CONTROLLER_NONE;
   }
 #endif
-#ifdef xENABLE_NUNCHUCK
+#ifdef ENABLE_NUNCHUCK
   if (reservedDevice != CONTROLLER_NUNCHUCK && ( validDevice == CONTROLLER_NUNCHUCK || nunchuck.begin())) {
     success = nunchuck.read(data);
     if (success) {
