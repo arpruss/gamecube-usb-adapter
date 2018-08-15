@@ -1,7 +1,7 @@
 #ifndef _GAMECUBE_H
 #define _GAMECUBE_H
 
-#define ALEXS_BUILD
+//#define ALEXS_BUILD
 
 #undef SERIAL_DEBUG
 
