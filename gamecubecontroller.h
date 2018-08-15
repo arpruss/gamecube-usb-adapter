@@ -1,7 +1,7 @@
 #ifndef _GAMECUBE_H
 #define _GAMECUBE_H
 
-//#define ALEXS_BUILD
+#define ALEXS_BUILD
 
 #undef SERIAL_DEBUG
 
@@ -245,7 +245,7 @@ const InjectedButton_t jetsetJoystickButtons[numberOfButtons] = {
     { 0,   {.key = 0 } },           // right shoulder button
     { 0,   {.key = 0 } },           // left shoulder button
     { JOY, {.button = 6 } },           // right shoulder button partial
-    { JOY,   {.button = 7 } },         // left shoulder button partial
+    { JOY,   {.button = 5 } },         // left shoulder button partial (was 7)
     { 0,   {.key = 0 } },           // virtual left
     { 0,   {.key = 0 } },           // virtual right
     { 0,   {.key = 0 } },           // virtual down
