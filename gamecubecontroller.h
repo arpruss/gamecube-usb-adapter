@@ -1,7 +1,7 @@
 #ifndef _GAMECUBE_H
 #define _GAMECUBE_H
 
-#undef ALEXS_BUILD
+//#define ALEXS_BUILD
 
 #undef SERIAL_DEBUG
 
@@ -432,8 +432,8 @@ const Injector_t injectors[] {
   { &modeUSBHID, defaultJoystickButtons, joystickDualShoulder, directionSwitchSlider, 64, "directionSwitch", "joystick, direction switch controls sliders", 8, true },
 #endif
   { &modeUSBHID, dpadZX, NULL, exerciseMachineSliders, 64, "dpadZX", "Arrow keys with A=Z, B=X", 8, true },
-  { &modeX360, defaultXBoxButtons, joystickDualShoulder, exerciseMachineSliders, 64, "xbox360", "XBox360, speed 100%, vibrate", 8, true, true },
-  { &modeX360, defaultXBoxButtons, joystickDualShoulder, exerciseMachineSliders, 64, "xbox360nv", "XBox360, speed 100%, no vibrate", 8, false, false },
+  { &modeX360, defaultXBoxButtons, joystickDualShoulder, exerciseMachineSliders, 64, "xbox360", "XBox360, speed 100%, vibrate", 8, false, true },
+  { &modeX360, defaultXBoxButtons, joystickDualShoulder, exerciseMachineSliders, 64, "xbox360nv", "XBox360, speed 100%, no vibrate", 8, true, false },
 #if defined(ENABLE_GAMECUBE) && defined(ENABLE_NUNCHUCK)
   { &modeDualJoystick, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 64, "dual", "dual joystick", 8, true }, // TODO: BROKEN!
 #endif  

@@ -2,7 +2,7 @@ from sys import argv,exit
 import ctypes
 
 try:
-    from pywinusb import hid
+	from pywinusb import hid
 except ImportError:
     exit("You need pywinusb. Run python -m pip install pywinusb")
     
