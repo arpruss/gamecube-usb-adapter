@@ -5,11 +5,16 @@
 
 #undef SERIAL_DEBUG
 
-#include <USBHID.h>
-#include <USBXBox360.h>
+#include <USBComposite.h>
+
+USBHID HID;
+HIDJoystick Joystick(HID);
+HIDKeyboard Keyboard(HID);
+HIDMouse Mouse(HID);
+USBXBox360 XBox360;
 
 #ifdef SERIAL_DEBUG
-#include <USBCompositeSerial.h>
+USBCompositeSerial CompositeSerial;
 # define DEBUG(...) CompositeSerial.println(__VA_ARGS__)
 #else
 # define DEBUG(...)
@@ -320,7 +325,7 @@ const InjectedButton_t dpadZX[numberOfButtons] = {
     { KEY, {.key = 'x'} },          // B
     { KEY, {.key = ' ' } },           // X
     { KEY, {.key = KEY_BACKSPACE } },           // Y
-    { KEY, {.key = ' ' } },           // Start
+    { KEY, {.key = KEY_RETURN } },           // Start
     { KEY, {.key = KEY_LEFT_ARROW } },         // DLeft
     { KEY, {.key = KEY_RIGHT_ARROW } },         // DRight
     { KEY, {.key = KEY_DOWN_ARROW  } },         // DDown

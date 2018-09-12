@@ -47,8 +47,6 @@
 #include <GameControllers.h>
 #include <stdlib.h>
 #include <libmaple/iwdg.h>
-#include <libmaple/usb_cdcacm.h>
-#include <libmaple/usb.h>
 #include "debounce.h"
 #include "gamecubecontroller.h"
 
@@ -100,24 +98,24 @@ const uint8_t dualJoystickReportDescription[] = {
 uint8_t featureReport[FEATURE_DATA_SIZE];
 uint8_t featureBuffer[HID_BUFFER_ALLOCATE_SIZE(FEATURE_DATA_SIZE,1)];
 volatile HIDBuffer_t fb { featureBuffer, HID_BUFFER_SIZE(FEATURE_DATA_SIZE,1), HID_JOYSTICK_REPORT_ID };
-HIDJoystick Joystick2(HID_JOYSTICK_REPORT_ID+1);
+HIDJoystick Joystick2(HID, HID_JOYSTICK_REPORT_ID+1);
 
 void beginUSBHID() {
   USBComposite.setProductString("Multiadapter Single Joystick");
   USBComposite.setVendorId(VENDOR_ID);
   USBComposite.setProductId(PRODUCT_ID_SINGLE);  
 #ifdef SERIAL_DEBUG
-  USBHID_begin_with_serial(reportDescription,sizeof(reportDescription));
+  HID(CompositeSerial,reportDescription,sizeof(reportDescription));
 #else
-  USBHID.begin(reportDescription,sizeof(reportDescription));
+  HID.begin(reportDescription,sizeof(reportDescription));
 #endif
-  USBHID.addFeatureBuffer(&fb);
+  HID.addFeatureBuffer(&fb);
   Joystick.setManualReportMode(true);
   delay(500);
 }
 
 void endUSBHID() {
-  USBHID.end();
+  HID.end();
 }
 
 void beginDual() {
@@ -127,17 +125,17 @@ void beginDual() {
 #ifdef SERIAL_DEBUG
   USBHID_begin_with_serial(dualJoystickReportDescription,sizeof(dualJoystickReportDescription));
 #else
-  USBHID.begin(dualJoystickReportDescription,sizeof(dualJoystickReportDescription));
+  HID.begin(dualJoystickReportDescription,sizeof(dualJoystickReportDescription));
 //  USBHID.begin(reportDescription,sizeof(reportDescription));
 #endif
-  USBHID.addFeatureBuffer(&fb);
+  HID.addFeatureBuffer(&fb);
   Joystick.setManualReportMode(true);
   Joystick2.setManualReportMode(true);
   delay(500);
 }
 
 void endDual() {
-  USBHID.end();
+  HID.end();
 }
 
 void setup() {
