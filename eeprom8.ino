@@ -65,7 +65,7 @@ static bool erasePages() {
 }
 */
 
-uint8_t EEPROM8_getValue(uint8_t variable) {
+int EEPROM8_getValue(uint8_t variable) {
   if (invalid)
     return -1;
 
