@@ -320,6 +320,28 @@ const InjectedButton_t dpadArrowWithCTRL[numberOfButtons] = {
     { KEY,   {.key = KEY_UP_ARROW } },           // virtual up
 };
 
+
+const InjectedButton_t mame[numberOfButtons] = {
+    { KEY, {.key = KEY_LEFT_CTRL} },          // A
+    { KEY, {.key = KEY_LEFT_ALT} },          // B
+    { 0,   {.key = ' ' } },           // X
+    { 0,   {.key = KEY_LEFT_SHIFT } },           // Y
+    { KEY, {.key = '1' } },           // Start 1 player
+    { KEY, {.key = KEY_LEFT_ARROW } },         // DLeft
+    { KEY, {.key = KEY_RIGHT_ARROW } },         // DRight
+    { KEY, {.key = KEY_DOWN_ARROW  } },         // DDown
+    { KEY, {.key = KEY_UP_ARROW  } },         // DUp
+    { KEY, {.key = '5' } },           // Z
+    { 0,   {.key = 0 } },           // right shoulder button
+    { 0,   {.key = 0 } },           // left shoulder button
+    { 0,   {.key = 0 } },           // right shoulder button partial
+    { 0,   {.key = 0 } },           // left shoulder button partial
+    { KEY,   {.key = KEY_LEFT_ARROW } },           // virtual left
+    { KEY,   {.key = KEY_RIGHT_ARROW } },           // virtual right
+    { KEY,   {.key = KEY_DOWN_ARROW } },           // virtual down
+    { KEY,   {.key = KEY_UP_ARROW } },           // virtual up
+};
+
 const InjectedButton_t dpadZX[numberOfButtons] = {
     { KEY, {.key = 'z'} },          // A
     { KEY, {.key = 'x'} },          // B
@@ -429,6 +451,7 @@ const Injector_t injectors[] {
   { &modeUSBHID, dpadArrowWithCTRL, NULL, exerciseMachineSliders, 64, "dpadArrowCtrl", "Arrow keys with A=CTRL, 8-way", 8, false },
   { &modeUSBHID, dpadArrowWithSpace, NULL, exerciseMachineSliders, 64, "dpadArrowSpace", "Arrow keys with A=SPACE, 4-way", 4, true },  
   { &modeUSBHID, dpadArrowWithSpace, NULL, exerciseMachineSliders, 64, "dpadArrowSpace", "Arrow keys with A=SPACE, 8-way", 8, false },  
+  { &modeUSBHID, mame, NULL, exerciseMachineSliders, 64, "mame", "MAME", 4, false },  
   { &modeUSBHID, dpadQBert, NULL, exerciseMachineSliders, 64, "dpadQBert", "QBert with dpad", 4, true },  
   { &modeUSBHID, dpadMC, NULL, exerciseMachineSliders, 64, "dpadMC", "Minecraft with dpad", 4, true },  
 #ifdef ENABLE_EXERCISE_MACHINE
