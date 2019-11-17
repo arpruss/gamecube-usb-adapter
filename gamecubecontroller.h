@@ -1,7 +1,7 @@
 #ifndef _GAMECUBE_H
 #define _GAMECUBE_H
 
-//#define ALEXS_BUILD
+#define ALEXS_BUILD
 
 #undef SERIAL_DEBUG
 
@@ -21,9 +21,10 @@ USBCompositeSerial CompositeSerial;
 #endif
 
 #define MAX_RUMBLE_TIME 10000
+//#define BUTTON_MONITOR_TIME_MS 6
 
 #define VENDOR_ID 0x1EAF
-#define PRODUCT_ID_SINGLE 0xe167 
+#define PRODUCT_ID_SINGLE 0xe167
 #define PRODUCT_ID_DUAL   0xe170
 
 #define FEATURE_DATA_SIZE 63

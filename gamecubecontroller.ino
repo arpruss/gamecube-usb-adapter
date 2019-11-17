@@ -345,6 +345,8 @@ void adjustMode(int delta) {
   updateDisplay();
 }
 
+uint32_t prevT = 0;
+
 void loop() {
   GameControllerData_t data;
   GameControllerData_t data2;
@@ -355,7 +357,7 @@ void loop() {
   
   uint32_t t0 = millis();
   while (debounceDown.getRawState() && debounceUp.getRawState() && (millis()-t0)<5000)
-        updateLED();
+      updateLED();
   
   iwdg_feed();
 
@@ -367,8 +369,9 @@ void loop() {
     savedInjectionMode = 0;
   }
   else {
-    t0 = millis();
-    do {
+//    t0 = millis();
+//    do 
+    {
       if (debounceDown.wasReleased()) {
         adjustMode(-1);
       }
@@ -378,7 +381,8 @@ void loop() {
         DEBUG("Changed to "+String(injectionMode));
       }
       updateLED();
-    } while((millis()-t0) < 6);
+    } 
+    //while((millis()-t0) < BUTTON_MONITOR_TIME_MS);
   }
 
   pollFeatureRequests();
@@ -407,6 +411,11 @@ void loop() {
 #endif
 
   dual = currentUSBMode == &modeDualJoystick && injectors[injectionMode].usbMode == &modeDualJoystick;
+  uint32_t t1 = millis();
+  uint32_t d = t1-prevT;
+  if (d < 5)
+    delay(5-d);
+  prevT = t1;
   receiveReport(&data,0);
   if (dual)
     dual = (bool)receiveReport(&data2,1);
