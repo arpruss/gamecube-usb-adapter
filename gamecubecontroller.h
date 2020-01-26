@@ -3,7 +3,7 @@
 
 #define ALEXS_BUILD
 
-#undef SERIAL_DEBUG
+//#define SERIAL_DEBUG
 
 #include <USBComposite.h>
 
@@ -12,6 +12,9 @@ HIDJoystick Joystick(HID);
 HIDKeyboard Keyboard(HID);
 HIDMouse Mouse(HID);
 USBXBox360 XBox360;
+USBMultiXBox360<2> DualXBox360;
+USBXBox360Controller* x360_1 = NULL;
+USBXBox360Controller* x360_2 = NULL;
 
 #ifdef SERIAL_DEBUG
 USBCompositeSerial CompositeSerial;
@@ -78,6 +81,8 @@ void beginDual();
 void endDual();
 void beginX360();
 void endX360();
+void beginDualX360();
+void endDualX360();
 
 uint8_t loadInjectionMode(void);
 void saveInjectionMode(uint8_t mode);
@@ -217,18 +222,18 @@ const InjectedButton_t defaultJoystickButtons[numberOfButtons] = {
 
 // unsupported: XBox back, XBox left bumper, XBox button, stick buttons
 const InjectedButton_t defaultXBoxButtons[numberOfButtons] = {
-    { JOY, {.button = 13} },           // A
-    { JOY, {.button = 14} },           // B
-    { JOY, {.button = 15} },           // X
-    { JOY, {.button = 16} },           // Y
-    { JOY, {.button = 5} },           // Start 
-    { JOY,   {.button = 3 } },             // DLeft
-    { JOY,   {.button = 4 } },             // DRight
-    { JOY,   {.button = 2 } },             // DDown
-    { JOY,   {.button = 1 } },             // DUp
-    { JOY, {.button = 10 } },          // Z
-    { 0, {.key = 0 } }, //{ JOY, {.button = 8 } },           // right shoulder button
-    { 0, {.key = 0 } }, //{ JOY, {.button = 7 } },           // left shoulder button
+    { JOY, {.button = XBOX_A} },           // A
+    { JOY, {.button = XBOX_B} },           // B
+    { JOY, {.button = XBOX_X} },           // X
+    { JOY, {.button = XBOX_Y} },           // Y
+    { JOY, {.button = XBOX_START} },           // Start 
+    { JOY,   {.button = XBOX_DLEFT } },             // DLeft
+    { JOY,   {.button = XBOX_DRIGHT } },             // DRight
+    { JOY,   {.button = XBOX_DDOWN } },             // DDown
+    { JOY,   {.button = XBOX_DUP } },             // DUp
+    { JOY, {.button = XBOX_RSHOULDER } },          // Z
+    { JOY, {.key = XBOX_R3 } }, //{ JOY, {.button = 8 } },           // right shoulder button
+    { JOY, {.key = XBOX_L3 } }, //{ JOY, {.button = 7 } },           // left shoulder button
     { 0,   {.key = 0 } },           // right shoulder button partial
     { 0,   {.key = 0 } },           // left shoulder button partial
     { 0,   {.key = 0 } },           // virtual left
@@ -442,6 +447,10 @@ const USBMode_t modeDualJoystick = {
   beginDual, endDual
 };
 
+const USBMode_t modeDualX360 = {
+  beginDualX360, endDualX360
+};
+
 const Injector_t injectors[] {
   { &modeUSBHID, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 64, "defaultUnified", "joystick, unified shoulder, speed 100%", 8, true },
   { &modeUSBHID, defaultJoystickButtons, joystickDualShoulder, exerciseMachineSliders, 40, "defaultDual", "joystick, dual shoulders, speed 63%", 8, true },
@@ -464,9 +473,12 @@ const Injector_t injectors[] {
   { &modeX360, defaultXBoxButtons, joystickDualShoulder, exerciseMachineSliders, 64, "xbox360", "XBox360, speed 100%, vibrate", 8, true, true },
   { &modeX360, defaultXBoxButtons, joystickDualShoulder, exerciseMachineSliders, 64, "xbox360nv", "XBox360, speed 100%, no vibrate", 8, false, false },
 #if defined(ENABLE_GAMECUBE) && defined(ENABLE_NUNCHUCK)
-  { &modeDualJoystick, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 64, "dual", "dual joystick", 8, true }, // TODO: BROKEN!
+  { &modeDualJoystick, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 64, "dual", "dual joystick", 8, true }, 
 #endif  
   { &modeUSBHID, dpadWASZButtons, NULL, exerciseMachineSliders, 64, "wasz", "WASZ", 4, false },
+#if defined(ENABLE_GAMECUBE) && defined(ENABLE_NUNCHUCK)
+  { &modeDualX360, defaultXBoxButtons, joystickDualShoulder, exerciseMachineSliders, 64, "dualx360", "dual XBox360", 8, true }, 
+#endif
 };
 
 const uint32_t numInjectionModes = sizeof(injectors)/sizeof(*injectors);

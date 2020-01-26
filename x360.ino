@@ -40,10 +40,28 @@ void beginX360() {
  XBox360.setManualReportMode(true);
  XBox360.setRumbleCallback(detectModeSwitch);
  delay(500);
+ x360_1 = &XBox360;
+ x360_2 = NULL;
 }
 
 void endX360() {
  XBox360.end();
+}
+
+void beginDualX360() {
+ USBComposite.setProductString("Dual XBox360 controller emulator");
+ DualXBox360.begin();
+ x360_1 = DualXBox360.controllers;
+ x360_1->setManualReportMode(true);
+ x360_1->setRumbleCallback(detectModeSwitch);
+ x360_2 = DualXBox360.controllers + 1;
+ x360_2->setManualReportMode(true);
+ x360_2->setRumbleCallback(detectModeSwitch);
+ delay(500);
+}
+
+void endDualX360() {
+ DualXBox360.end();
 }
 
 

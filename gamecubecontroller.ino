@@ -105,7 +105,7 @@ void beginUSBHID() {
   USBComposite.setVendorId(VENDOR_ID);
   USBComposite.setProductId(PRODUCT_ID_SINGLE);  
 #ifdef SERIAL_DEBUG
-  HID(CompositeSerial,reportDescription,sizeof(reportDescription));
+  HID.begin(CompositeSerial,reportDescription,sizeof(reportDescription));
 #else
   HID.begin(reportDescription,sizeof(reportDescription));
 #endif
@@ -123,7 +123,7 @@ void beginDual() {
   USBComposite.setVendorId(VENDOR_ID);
   USBComposite.setProductId(PRODUCT_ID_DUAL);  
 #ifdef SERIAL_DEBUG
-  USBHID_begin_with_serial(dualJoystickReportDescription,sizeof(dualJoystickReportDescription));
+  HID.begin(CompositeSerial, dualJoystickReportDescription,sizeof(dualJoystickReportDescription));
 #else
   HID.begin(dualJoystickReportDescription,sizeof(dualJoystickReportDescription));
 //  USBHID.begin(reportDescription,sizeof(reportDescription));
@@ -242,6 +242,9 @@ static uint8_t receiveReport(GameControllerData_t* data, uint8_t deviceNumber) {
 #ifdef ENABLE_NUNCHUCK
   if (reservedDevice != CONTROLLER_NUNCHUCK && ( validDevice == CONTROLLER_NUNCHUCK || nunchuck.begin())) {
     success = nunchuck.read(data);
+#ifdef SERIAL_DEBUG
+    CompositeSerial.println(success);
+#endif            
     if (success) {
       validDevices[deviceNumber] = CONTROLLER_NUNCHUCK;
       return 1;
@@ -293,7 +296,7 @@ void intToString(char* buf, int a) {
 }
 
 void pollFeatureRequests() {
-  if (currentUSBMode != &modeX360 && Joystick.getFeature(featureReport)) {
+  if (currentUSBMode != &modeX360 && currentUSBMode != &modeDualX360 && Joystick.getFeature(featureReport)) {
     if (0==strcmp((char*)featureReport, "id?")) {
       setFeature("id=GameCubeControllerAdapter");
     }
@@ -410,7 +413,8 @@ void loop() {
   validUSB = 1;
 #endif
 
-  dual = currentUSBMode == &modeDualJoystick && injectors[injectionMode].usbMode == &modeDualJoystick;
+  dual = (currentUSBMode == &modeDualJoystick && injectors[injectionMode].usbMode == &modeDualJoystick) ||
+         (currentUSBMode == &modeDualX360 && injectors[injectionMode].usbMode == &modeDualX360);
   uint32_t t1 = millis();
   uint32_t d = t1-prevT;
   if (d < 5)
@@ -420,10 +424,10 @@ void loop() {
   if (dual)
     dual = (bool)receiveReport(&data2,1);
   DEBUG("joystick = "+String(data.joystickX)+","+String(data.joystickY));  
+  inject(&Joystick, x360_1, injectors + injectionMode, &data, &exerciseMachine);
   if (USBComposite.isReady()) {
-    inject(&Joystick, injectors + injectionMode, &data, &exerciseMachine);
     if (dual) {
-      inject(&Joystick2, injectors + injectionMode, &data2, &exerciseMachine);
+       inject(&Joystick2, x360_2, injectors + injectionMode, &data2, &exerciseMachine);
     }
   }
     
