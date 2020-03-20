@@ -424,8 +424,10 @@ void loop() {
   if (dual)
     dual = (bool)receiveReport(&data2,1);
   DEBUG("joystick = "+String(data.joystickX)+","+String(data.joystickY));  
-  inject(&Joystick, x360_1, injectors + injectionMode, &data, &exerciseMachine);
+
   if (USBComposite.isReady()) {
+    inject(&Joystick, x360_1, injectors + injectionMode, &data, &exerciseMachine);
+
     if (dual) {
        inject(&Joystick2, x360_2, injectors + injectionMode, &data2, &exerciseMachine);
     }
