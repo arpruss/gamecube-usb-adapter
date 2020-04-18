@@ -356,6 +356,8 @@ void loop() {
   ExerciseMachineData_t exerciseMachine;
   bool dual = false;
 
+  iwdg_feed();
+
   uint32_t t0 = millis();
   while (debounceDown.getRawState() && debounceUp.getRawState() && (millis()-t0)<5000)
       updateLED();

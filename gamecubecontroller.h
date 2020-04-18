@@ -95,7 +95,7 @@ extern uint8_t leftMotor;
 extern uint8_t rightMotor;
 extern uint32_t lastRumbleOff;
  
-const uint32_t watchdogSeconds = 10;
+const uint32_t watchdogSeconds = 10; // do not make it be below 6
 
 #define MY_SCL PB6
 #define MY_SDA PB7
