@@ -280,10 +280,6 @@ void joystickNoShoulder(const GameControllerData_t* data) {
 }
 
 void inject(HIDJoystick* joy, USBXBox360Controller* xbox, const Injector_t* injector, const GameControllerData_t* curDataP, const ExerciseMachineData_t* exerciseMachineP) {
-  if (currentUSBMode == &modeDualJoystick && joy == NULL)
-    return;
-  if ((currentUSBMode == &modeX360 || currentUSBMode == &modeDualX360) && xbox == NULL)
-    return;
   curJoystick = joy;
   curX360 = xbox;
   didJoystick = false;
@@ -303,6 +299,12 @@ void inject(HIDJoystick* joy, USBXBox360Controller* xbox, const Injector_t* inje
     }
   }
 
+  if (currentUSBMode == &modeDualJoystick && joy == NULL)
+    return;
+    
+  if ((currentUSBMode == &modeX360 || currentUSBMode == &modeDualX360) && xbox == NULL)
+    return;
+
   if (prevInjector != injector) {
     if (currentUSBMode != &modeX360 && currentUSBMode != &modeDualX360) {
       if (currentUSBMode != &modeDualJoystick) {
@@ -314,8 +316,8 @@ void inject(HIDJoystick* joy, USBXBox360Controller* xbox, const Injector_t* inje
       didJoystick = true;
     }
     else {
-      for (int i=0; i<16; i++)
-        curX360->button(i, 0);
+      if (xbox != NULL) curX360->buttons(0);
+      didX360 = true;
     }
     
     prevInjector = injector;
@@ -361,9 +363,8 @@ void inject(HIDJoystick* joy, USBXBox360Controller* xbox, const Injector_t* inje
   if (injector->exerciseMachine != NULL)
     injector->exerciseMachine(curDataP, exerciseMachineP, injector->exerciseMachineMultiplier);
 
-  if (didJoystick) {
-    curJoystick->send();
-  }
+  if (didJoystick) 
+    curJoystick->send(); 
 
   if (didX360)
     curX360->send(); 

@@ -356,8 +356,6 @@ void loop() {
   ExerciseMachineData_t exerciseMachine;
   bool dual = false;
 
-  iwdg_feed();
-  
   uint32_t t0 = millis();
   while (debounceDown.getRawState() && debounceUp.getRawState() && (millis()-t0)<5000)
       updateLED();
@@ -399,7 +397,7 @@ void loop() {
   }
 
 #ifndef SERIAL_DEBUG
-  if (!usb_is_connected(USBLIB) || !usb_is_configured(USBLIB)) {
+  if (!USBComposite.isReady()) {
     // we're disconnected; save power by not talking to controller
     validUSB = 0;
     updateLED();
@@ -430,7 +428,7 @@ void loop() {
 
     if (dual) {
        inject(&Joystick2, x360_2, injectors + injectionMode, &data2, &exerciseMachine);
-    }
+    } 
   }
     
   updateLED();
