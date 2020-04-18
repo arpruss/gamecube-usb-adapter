@@ -111,6 +111,7 @@ void beginUSBHID() {
 #endif
   HID.addFeatureBuffer(&fb);
   Joystick.setManualReportMode(true);
+  for (int i=0;i<32;i++) Joystick.button(i+1,0);
   delay(500);
 }
 
@@ -131,6 +132,10 @@ void beginDual() {
   HID.addFeatureBuffer(&fb);
   Joystick.setManualReportMode(true);
   Joystick2.setManualReportMode(true);
+  for (int i=0;i<32;i++) {
+    Joystick.button(i+1,0);
+    Joystick2.button(i+1,0);
+  }
   delay(500);
 }
 
@@ -355,8 +360,6 @@ void loop() {
   GameControllerData_t data2;
   ExerciseMachineData_t exerciseMachine;
   bool dual = false;
-
-  iwdg_feed();
 
   uint32_t t0 = millis();
   while (debounceDown.getRawState() && debounceUp.getRawState() && (millis()-t0)<5000)

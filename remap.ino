@@ -294,9 +294,7 @@ void inject(HIDJoystick* joy, USBXBox360Controller* xbox, const Injector_t* inje
       currentUSBMode = injector->usbMode;
       currentUSBMode->begin();
     }
-    else {
-      return;
-    }
+    return;
   }
 
   if (currentUSBMode == &modeDualJoystick && joy == NULL)
@@ -311,13 +309,6 @@ void inject(HIDJoystick* joy, USBXBox360Controller* xbox, const Injector_t* inje
         Keyboard.releaseAll();
         Mouse.release(0xFF);
       }
-      for (int i=0; i<32; i++)
-        curJoystick->button(i, 0);
-      didJoystick = true;
-    }
-    else {
-      if (xbox != NULL) curX360->buttons(0);
-      didX360 = true;
     }
     
     prevInjector = injector;
