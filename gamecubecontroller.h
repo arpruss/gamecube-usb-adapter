@@ -11,8 +11,8 @@ USBHID HID;
 HIDJoystick Joystick(HID);
 HIDKeyboard Keyboard(HID);
 HIDMouse Mouse(HID);
-USBXBox360 XBox360;
-USBMultiXBox360<2> DualXBox360;
+USBXBox360 XBox360(0x045e, 0x028f);
+USBMultiXBox360<2> DualXBox360(0x045e, 0x028f);
 USBXBox360Controller* x360_1 = NULL;
 USBXBox360Controller* x360_2 = NULL;
 
