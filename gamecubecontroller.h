@@ -1,7 +1,9 @@
 #ifndef _GAMECUBE_H
 #define _GAMECUBE_H
 
-//#define ALEXS_BUILD
+#define ALEXS_BUILD
+
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 
 //#define SERIAL_DEBUG
 
@@ -9,10 +11,11 @@
 
 USBHID HID;
 HIDJoystick Joystick(HID);
+HIDSwitchController Switch(HID);
 HIDKeyboard Keyboard(HID);
 HIDMouse Mouse(HID);
-USBXBox360 XBox360(0x045e, 0x028f);
-USBMultiXBox360<2> DualXBox360(0x045e, 0x028f);
+USBXBox360 XBox360; //(0x045e, 0x028f);
+USBMultiXBox360<2> DualXBox360; //(0x045e, 0x028f);
 USBXBox360Controller* x360_1 = NULL;
 USBXBox360Controller* x360_2 = NULL;
 
@@ -32,6 +35,7 @@ USBCompositeSerial CompositeSerial;
 
 #define FEATURE_DATA_SIZE 63
 
+#define ENABLE_SWITCH
 #define ENABLE_GAMECUBE
 #define ENABLE_NUNCHUCK
 #ifdef ALEXS_BUILD
@@ -83,6 +87,8 @@ void beginX360();
 void endX360();
 void beginDualX360();
 void endDualX360();
+void beginSwitch();
+void endSwitch();
 
 uint8_t loadInjectionMode(void);
 void saveInjectionMode(uint8_t mode);
@@ -152,7 +158,8 @@ const uint16_t virtualLeft = numberOfHardButtons+2;
 const uint16_t virtualRight = numberOfHardButtons+3;
 const uint16_t virtualDown = numberOfHardButtons+4;
 const uint16_t virtualUp = numberOfHardButtons+5;
-const int numberOfButtons = numberOfHardButtons+6;
+const int numberOfUnshiftedButtons = numberOfHardButtons+6;
+const int numberOfButtons = 2*numberOfUnshiftedButtons;
 
 #define UNDEFINED 0
 #define JOY 'j'
@@ -160,6 +167,7 @@ const int numberOfButtons = numberOfHardButtons+6;
 #define FUN 'f'
 #define MOUSE_RELATIVE 'm'
 #define CLICK 'c'
+#define SHIFT 's'
 
 typedef void (*GameControllerDataProcessor_t)(const GameControllerData_t* data);
 typedef void (*ExerciseMachineProcessor_t)(const GameControllerData_t* data, const ExerciseMachineData_t* exerciseMachine, int32_t multiplier);
@@ -227,10 +235,10 @@ const InjectedButton_t defaultXBoxButtons[numberOfButtons] = {
     { JOY, {.button = XBOX_X} },           // X
     { JOY, {.button = XBOX_Y} },           // Y
     { JOY, {.button = XBOX_START} },           // Start 
-    { JOY,   {.button = XBOX_DLEFT } },             // DLeft
-    { JOY,   {.button = XBOX_DRIGHT } },             // DRight
-    { JOY,   {.button = XBOX_DDOWN } },             // DDown
-    { JOY,   {.button = XBOX_DUP } },             // DUp
+    { JOY, {.button = XBOX_DLEFT } },             // DLeft
+    { JOY, {.button = XBOX_DRIGHT } },             // DRight
+    { JOY, {.button = XBOX_DDOWN } },             // DDown
+    { JOY, {.button = XBOX_DUP } },             // DUp
     { JOY, {.button = XBOX_RSHOULDER } },          // Z
     { JOY, {.key = XBOX_R3 } }, //{ JOY, {.button = 8 } },           // right shoulder button
     { JOY, {.key = XBOX_L3 } }, //{ JOY, {.button = 7 } },           // left shoulder button
@@ -240,6 +248,46 @@ const InjectedButton_t defaultXBoxButtons[numberOfButtons] = {
     { 0,   {.key = 0 } },           // virtual right
     { 0,   {.key = 0 } },           // virtual down
     { 0,   {.key = 0 } },           // virtual up
+};
+
+const InjectedButton_t defaultSwitchButtons[numberOfButtons] = {
+    { JOY, {.button = HIDSwitchController::BUTTON_A} },           // A
+    { JOY, {.button = HIDSwitchController::BUTTON_B} },           // B
+    { JOY, {.button = HIDSwitchController::BUTTON_X} },           // X
+    { JOY, {.button = HIDSwitchController::BUTTON_Y} },           // Y
+    { JOY, {.button = HIDSwitchController::BUTTON_PLUS} },        // Start 
+    { 0,   {.key = 0 } },             // DLeft
+    { 0,   {.key = 0 } },             // DRight
+    { 0,   {.key = 0 } },             // DDown
+    { 0,   {.key = 0 } },             // DUp
+    { SHIFT },          // Z
+    { 0, {.key = 0 } }, // right shoulder button
+    { 0, {.key = 0 } }, // left shoulder button
+    { JOY, {.button = HIDSwitchController::BUTTON_ZR } },           // right shoulder button partial
+    { JOY, {.button = HIDSwitchController::BUTTON_ZL } },           // left shoulder button partial
+    { 0,   {.key = 0 } },           // virtual left
+    { 0,   {.key = 0 } },           // virtual right
+    { 0,   {.key = 0 } },           // virtual down
+    { 0,   {.key = 0 } },           // virtual up
+// shifted
+    { JOY, {.button = HIDSwitchController::BUTTON_CAPTURE }  },           // A
+    { JOY, {.button = HIDSwitchController::BUTTON_HOME } },           // B
+    { JOY, {.button = HIDSwitchController::BUTTON_RIGHT_CLICK } },           // X
+    { JOY, {.button = HIDSwitchController::BUTTON_LEFT_CLICK } },           // Y
+    { JOY, {.button = HIDSwitchController::BUTTON_MINUS } },           // Start
+    { 0,   {.key = 0 } },             // DLeft
+    { 0,   {.key = 0 } },             // DRight
+    { 0,   {.key = 0 } },             // DDown
+    { 0,   {.key = 0 } },             // DUp
+    { 0 },          // Z
+    { 0, {.key = 0 } }, // right shoulder button
+    { 0, {.key = 0 } }, // left shoulder button
+    { JOY, {.button = HIDSwitchController::BUTTON_R } },           // right shoulder button partial
+    { JOY, {.button = HIDSwitchController::BUTTON_L } },           // left shoulder button partial
+    { 0,   {.key = 0 } },           // virtual left
+    { 0,   {.key = 0 } },           // virtual right
+    { 0,   {.key = 0 } },           // virtual down
+    { 0,   {.key = 0 } }            // virtual up
 };
 
 const InjectedButton_t jetsetJoystickButtons[numberOfButtons] = {
@@ -451,6 +499,10 @@ const USBMode_t modeDualX360 = {
   beginDualX360, endDualX360
 };
 
+const USBMode_t modeSwitch = {
+  beginSwitch, endSwitch
+};
+
 const Injector_t injectors[] {
   { &modeUSBHID, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 64, "defaultUnified", "joystick, unified shoulder, speed 100%", 8, true },
   { &modeUSBHID, defaultJoystickButtons, joystickDualShoulder, exerciseMachineSliders, 40, "defaultDual", "joystick, dual shoulders, speed 63%", 8, true },
@@ -463,7 +515,10 @@ const Injector_t injectors[] {
   { &modeUSBHID, dpadArrowWithSpace, NULL, exerciseMachineSliders, 64, "dpadArrowSpace", "Arrow keys with A=SPACE, 8-way", 8, false },  
   { &modeUSBHID, mame, NULL, exerciseMachineSliders, 64, "mame", "MAME", 4, false },  
   { &modeUSBHID, dpadQBert, NULL, exerciseMachineSliders, 64, "dpadQBert", "QBert with dpad", 4, true },  
-  { &modeUSBHID, dpadMC, NULL, exerciseMachineSliders, 64, "dpadMC", "Minecraft with dpad", 4, true },  
+  //{ &modeUSBHID, dpadMC, NULL, exerciseMachineSliders, 64, "dpadMC", "Minecraft with dpad", 4, true },  
+#ifdef ENABLE_SWITCH
+  { &modeSwitch, defaultSwitchButtons, joystickNoShoulder, NULL, 64, "switch", "Switch Controller", 8, true, false },
+#endif  
 #ifdef ENABLE_EXERCISE_MACHINE
   { &modeUSBHID, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 96, "default96", "joystick, unified shoulder, speed 150%", 8, true },  
   { &modeUSBHID, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 128, "default128", "joystick, unified shoulder, speed 200%", 8, true },  

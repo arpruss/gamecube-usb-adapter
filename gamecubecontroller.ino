@@ -119,6 +119,18 @@ void endUSBHID() {
   HID.end();
 }
 
+void beginSwitch() {
+  Switch.begin();
+  Switch.setManualReportMode(true);
+  Switch.buttons(0);
+  Switch.dpad(HIDSwitchController::DPAD_NEUTRAL);
+  delay(500);
+}
+
+void endSwitch() {
+  Switch.end();
+}
+
 void beginDual() {
   USBComposite.setProductString("Multiadapter Dual Joystick");
   USBComposite.setVendorId(VENDOR_ID);
