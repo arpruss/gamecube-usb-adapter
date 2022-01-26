@@ -7,22 +7,9 @@ bool didJoystick;
 bool didX360;
 bool didSwitch;
 int32 shiftButton = -1;
-const USBMode_t* usbMode;
 const Injector_t* prevInjector = NULL;
 HIDJoystick* curJoystick;
 USBXBox360Controller* curX360;
-
-inline bool isModeX360() {
-  return usbMode == &modeX360 || usbMode == &modeDualX360;
-}
-
-inline bool isModeJoystick() {
-  return usbMode == &modeDualJoystick || usbMode == &modeUSBHID;
-}
-
-inline bool isModeSwitch() {
-  return usbMode == &modeSwitch;
-}
 
 void joySliderLeft(uint16_t t) {
   curJoystick->sliderLeft((1023 - t) & 1023);
@@ -358,8 +345,6 @@ void inject(HIDJoystick* joy, USBXBox360Controller* xbox, const Injector_t* inje
         break;
       }
   }
-
-  usbMode = injector->usbMode;
 
   memcpy(prevButtons, curButtons, sizeof(curButtons));
   memset(curButtons, 0, sizeof(curButtons));  

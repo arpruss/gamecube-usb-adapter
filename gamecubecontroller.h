@@ -539,5 +539,17 @@ const Injector_t injectors[] {
 const uint32_t numInjectionModes = sizeof(injectors)/sizeof(*injectors);
 void inject(HIDJoystick* joy, const Injector_t* injector, const GameControllerData_t* curDataP, const ExerciseMachineData_t* exerciseMachineP);
 
+static inline bool isModeX360() {
+  return currentUSBMode == &modeX360 || currentUSBMode == &modeDualX360;
+}
+
+static inline bool isModeJoystick() {
+  return currentUSBMode == &modeDualJoystick || currentUSBMode == &modeUSBHID;
+}
+
+static inline bool isModeSwitch() {
+  return currentUSBMode == &modeSwitch;
+}
+
 #endif // _GAMECUBE_H
 

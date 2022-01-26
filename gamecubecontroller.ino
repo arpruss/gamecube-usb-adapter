@@ -95,9 +95,16 @@ const uint8_t dualJoystickReportDescription[] = {
    HID_JOYSTICK_REPORT_DESCRIPTOR(HID_JOYSTICK_REPORT_ID+1)
 };
 
+const uint8_t switchReportDescription[] = {
+  HID_SWITCH_CONTROLLER_REPORT_DESCRIPTOR(
+    HID_FEATURE_REPORT_DESCRIPTOR(FEATURE_DATA_SIZE)
+    )
+};
+
 uint8_t featureReport[FEATURE_DATA_SIZE];
 uint8_t featureBuffer[HID_BUFFER_ALLOCATE_SIZE(FEATURE_DATA_SIZE,1)];
 volatile HIDBuffer_t fb { featureBuffer, HID_BUFFER_SIZE(FEATURE_DATA_SIZE,1), HID_JOYSTICK_REPORT_ID };
+volatile HIDBuffer_t fbSwitch { featureBuffer, HID_BUFFER_SIZE(FEATURE_DATA_SIZE,1), 0 };
 HIDJoystick Joystick2(HID, HID_JOYSTICK_REPORT_ID+1);
 
 void beginUSBHID() {
@@ -120,7 +127,11 @@ void endUSBHID() {
 }
 
 void beginSwitch() {
-  Switch.begin();
+  USBComposite.setProductString("Emulated Horipad");
+  USBComposite.setVendorId(0x0F0D);
+  USBComposite.setProductId(0x00c1);  
+  HID.begin(switchReportDescription,sizeof(switchReportDescription));
+  HID.addFeatureBuffer(&fbSwitch);
   Switch.setManualReportMode(true);
   Switch.buttons(0);
   Switch.dpad(HIDSwitchController::DPAD_NEUTRAL);
@@ -156,7 +167,7 @@ void endDual() {
 }
 
 void setup() {
-  USBComposite.setVendorId(VENDOR_ID);
+  USBComposite.setManufacturerString("Omega Centauri Software");
   for (int i=0; i<numIndicators; i++)
     pinMode(indicatorLEDs[i], OUTPUT);
   pinMode(downButton, INPUT_PULLDOWN);
@@ -284,7 +295,10 @@ static uint8_t receiveReport(GameControllerData_t* data, uint8_t deviceNumber) {
 
 void setFeature(const void* s) {
   strcpy((char*)featureReport, (const char*)s);
-  Joystick.setFeature(featureReport);
+  if (isModeSwitch()) 
+    Switch.setFeature(featureReport);
+  else if (isModeJoystick())
+    Joystick.setFeature(featureReport);
 }
 
 void intToString(char* buf, int a) {
@@ -312,8 +326,17 @@ void intToString(char* buf, int a) {
   *buf = 0;
 }
 
+bool getFeature(uint8_t* f) {
+  if (isModeSwitch()) {
+    return Switch.getFeature(f);
+  }
+  else if (isModeJoystick()) {
+    return Joystick.getFeature(f);
+  }
+}
+
 void pollFeatureRequests() {
-  if (currentUSBMode != &modeX360 && currentUSBMode != &modeDualX360 && Joystick.getFeature(featureReport)) {
+  if (getFeature(featureReport)) {
     if (0==strcmp((char*)featureReport, "id?")) {
       setFeature("id=GameCubeControllerAdapter");
     }
