@@ -116,6 +116,7 @@ void beginUSBHID() {
 #else
   HID.begin(reportDescription,sizeof(reportDescription));
 #endif
+  HID.clearBuffers();
   HID.addFeatureBuffer(&fb);
   Joystick.setManualReportMode(true);
   for (int i=0;i<32;i++) Joystick.button(i+1,0);
@@ -131,6 +132,7 @@ void beginSwitch() {
   USBComposite.setVendorId(0x0F0D);
   USBComposite.setProductId(0x00c1);  
   HID.begin(switchReportDescription,sizeof(switchReportDescription));
+  HID.clearBuffers();
   HID.addFeatureBuffer(&fbSwitch);
   Switch.setManualReportMode(true);
   Switch.buttons(0);
@@ -167,6 +169,9 @@ void endDual() {
 }
 
 void setup() {
+#ifdef directionSwitch
+  pinMode(directionSwitch, INPUT_PULLDOWN);
+#endif
   USBComposite.setManufacturerString("Omega Centauri Software");
   for (int i=0; i<numIndicators; i++)
     pinMode(indicatorLEDs[i], OUTPUT);
@@ -332,6 +337,9 @@ bool getFeature(uint8_t* f) {
   }
   else if (isModeJoystick()) {
     return Joystick.getFeature(f);
+  }
+  else {
+    return false;
   }
 }
 

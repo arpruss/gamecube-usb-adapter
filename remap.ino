@@ -3,23 +3,21 @@
 uint8_t prevButtons[numberOfButtons];
 uint8_t curButtons[numberOfButtons];
 GameControllerData_t oldData;
-bool didJoystick;
-bool didX360;
-bool didSwitch;
 int32 shiftButton = -1;
+bool pressedSomethingElseWithShift;
 const Injector_t* prevInjector = NULL;
 HIDJoystick* curJoystick;
 USBXBox360Controller* curX360;
 
-void joySliderLeft(uint16_t t) {
+static void joySliderLeft(uint16_t t) {
   curJoystick->sliderLeft((1023 - t) & 1023);
 }
 
-void joySliderRight(uint16_t t) {
+static void joySliderRight(uint16_t t) {
   curJoystick->sliderRight((1023 - t) & 1023);
 }
 
-void buttonizeStick4Dir(uint8_t* buttons, uint16_t x, uint16_t y) {
+static void buttonizeStick4Dir(uint8_t* buttons, uint16_t x, uint16_t y) {
   uint32_t dx = x < 512 ? 512 - x : x - 512;
   uint32_t dy = y < 512 ? 512 - y : y - 512;
   if (dx > dy) {
@@ -42,9 +40,9 @@ void buttonizeStick4Dir(uint8_t* buttons, uint16_t x, uint16_t y) {
   }
 }
 
-const uint32_t tan22_5 = 4142;
+static const uint32_t tan22_5 = 4142;
 
-void buttonizeStick(uint8_t* buttons, uint16_t x, uint16_t y) {
+static void buttonizeStick(uint8_t* buttons, uint16_t x, uint16_t y) {
   uint32_t dx = x < 512 ? 512 - x : x - 512;
   uint32_t dy = y < 512 ? 512 - y : y - 512;
   uint32_t r2 = dx * dx + dy * dy;
@@ -74,7 +72,7 @@ void buttonizeStick(uint8_t* buttons, uint16_t x, uint16_t y) {
   }
 }
 
-void toButtonArray(uint8_t* buttons, const GameControllerData_t* data, uint8 directions) {
+static void toButtonArray(uint8_t* buttons, const GameControllerData_t* data, uint8 directions) {
   for (int i = 0; i < numberOfHardButtons; i++)
     buttons[i] = 0 != (data->buttons & buttonMasks[i]);
   buttons[virtualShoulderRightPartial] = data->shoulderRight >= shoulderThreshold;
@@ -90,27 +88,24 @@ void toButtonArray(uint8_t* buttons, const GameControllerData_t* data, uint8 dir
   }
 }
 
-inline int16_t range10u16s(uint16_t x) {
+static inline int16_t range10u16s(uint16_t x) {
   return (((int32_t)(uint32_t)x - 512) * 32767 + 255) / 512;
 }
 
-void joystickBasic(const GameControllerData_t* data) {
+static void joystickBasic(const GameControllerData_t* data) {
   if (isModeJoystick()) {
-    didJoystick = true;
     curJoystick->X(data->joystickX);
     curJoystick->Y(data->joystickY);
     curJoystick->Xrotate(data->cX);
     curJoystick->Yrotate(data->cY);
   }
   else if (isModeX360()) {
-    didX360 = true;
     curX360->X(range10u16s(data->joystickX));
     curX360->Y(-range10u16s(data->joystickY));
     curX360->XRight(range10u16s(data->cX));
     curX360->YRight(-range10u16s(data->cY));
   }
   else {
-    didSwitch = true;
     Switch.X(data->joystickX >> 2);
     Switch.Y(data->joystickY >> 2);
     Switch.XRight(data->cX >> 2);
@@ -118,7 +113,7 @@ void joystickBasic(const GameControllerData_t* data) {
   }
 }
 
-void joystickPOV(const GameControllerData_t* data) {
+static void joystickPOV(const GameControllerData_t* data) {
   if (isModeX360() )
     return;
 
@@ -151,11 +146,9 @@ void joystickPOV(const GameControllerData_t* data) {
   }
 
   if (isModeJoystick()) {
-    didJoystick = true;
     curJoystick->hat(dir);
   }
   else {
-    didSwitch = true;
     if (dir < 0)
       Switch.dpad(HIDSwitchController::DPAD_NEUTRAL);
     else 
@@ -163,7 +156,7 @@ void joystickPOV(const GameControllerData_t* data) {
   }
 }
 
-uint16_t getExerciseMachineSpeed(const ExerciseMachineData_t* exerciseMachineP, int32_t multiplier) {
+static uint16_t getExerciseMachineSpeed(const ExerciseMachineData_t* exerciseMachineP, int32_t multiplier) {
 #ifndef ENABLE_EXERCISE_MACHINE
   return 512;
 #else
@@ -204,12 +197,10 @@ void joystickDualShoulder(const GameControllerData_t* data) {
   if (isModeJoystick()) {
     joySliderLeft(data->shoulderLeft);
     joySliderRight(data->shoulderRight);
-    didJoystick = true;
   }
   else if (isModeX360()) {
     curX360->sliderLeft(data->shoulderLeft / 4);
     curX360->sliderRight(data->shoulderRight / 4);
-    didX360 = true;
   }
 }
 
@@ -229,12 +220,10 @@ void exerciseMachineSliders(const GameControllerData_t* data, const ExerciseMach
       if (isModeJoystick()) {
         joySliderLeft(out);
         joySliderRight(out);
-        didJoystick = true;
       }
       else if (isModeX360()) {
         curX360->sliderLeft(out >> 2);
         curX360->sliderRight(out >> 2);
-        didX360 = true;
       }
       debounceDown.cancelRelease();
       return;
@@ -246,7 +235,6 @@ void exerciseMachineSliders(const GameControllerData_t* data, const ExerciseMach
   if (isModeJoystick()) {
     joySliderLeft(datum);
     joySliderRight(datum);
-    didJoystick = true;
   }
   else if (isModeX360()) {
     if (datum >= 512) {
@@ -257,7 +245,6 @@ void exerciseMachineSliders(const GameControllerData_t* data, const ExerciseMach
       curX360->sliderRight(0);
       curX360->sliderLeft((511 - datum) >> 1);
     }
-    didX360 = true;
   }
 #endif
 }
@@ -267,11 +254,9 @@ void directionSwitchSlider(const GameControllerData_t* data, const ExerciseMachi
   (void)data;
   if (exerciseMachineP->direction) {
     if (isModeJoystick()) {
-      didJoystick = true;
       joySliderRight(1023);
     }
     else if (isModeX360()) {
-      didX360 = true;
       curX360->sliderRight(255);
       curX360->sliderLeft(0);
     }
@@ -299,11 +284,14 @@ void joystickNoShoulder(const GameControllerData_t* data) {
   joystickPOV(data);
 }
 
+// todo: reset two joystick
 void inject(HIDJoystick* joy, USBXBox360Controller* xbox, const Injector_t* injector, const GameControllerData_t* curDataP, const ExerciseMachineData_t* exerciseMachineP) {
   curJoystick = joy;
   curX360 = xbox;
-  didJoystick = false;
-  didX360 = false;
+  uint8_t* curReport;
+  static uint8_t prevReport[64]; 
+  uint16_t reportSize;
+  bool force = false;
 
   if (currentUSBMode != injector->usbMode) {
     if (lastChangedModeTime + 1000 <= millis()) {
@@ -342,25 +330,74 @@ void inject(HIDJoystick* joy, USBXBox360Controller* xbox, const Injector_t* inje
     for (int i = 0; i < numberOfUnshiftedButtons; i++)
       if (injector->buttons[i].mode == SHIFT) {
         shiftButton = i;
+        pressedSomethingElseWithShift = false;
         break;
       }
+
+    force = true;
+  }
+  else {
+    if (isModeJoystick()) {
+      curReport = curJoystick->getReport();
+      reportSize = curJoystick->getReportSize();
+    }
+    else if (isModeX360()) {
+      curReport = curX360->getReport();
+      reportSize = curX360->getReportSize();
+    }
+    else {
+      curReport = Switch.getReport();
+      reportSize = Switch.getReportSize();
+    }
+    if (reportSize > sizeof(prevReport))
+      reportSize = sizeof(prevReport);
+    memcpy(prevReport, curReport, reportSize);
   }
 
   memcpy(prevButtons, curButtons, sizeof(curButtons));
   memset(curButtons, 0, sizeof(curButtons));  
   toButtonArray(curButtons, curDataP, injector->directions);
   if (shiftButton >= 0 && curButtons[shiftButton]) {
+    if (!pressedSomethingElseWithShift) {
+      for(int i=0; i<numberOfUnshiftedButtons; i++) {
+        if (i != shiftButton && curButtons[i]) {
+          pressedSomethingElseWithShift = true;
+          break;
+        }
+      }
+    }
     memcpy(curButtons+numberOfUnshiftedButtons, curButtons, numberOfUnshiftedButtons*sizeof(curButtons[0]));
     memset(curButtons, 0, numberOfUnshiftedButtons*sizeof(curButtons[0]));
+    curButtons[shiftButton] = 1;
+    curButtons[numberOfUnshiftedButtons + shiftButton] = 0;
   }
   else {
     memset(curButtons+numberOfUnshiftedButtons, 0, numberOfUnshiftedButtons*sizeof(curButtons[0]));
+    if (shiftButton >= 0 && prevButtons[shiftButton] && !pressedSomethingElseWithShift) {
+      curButtons[numberOfUnshiftedButtons+shiftButton] = 1;
+      pressedSomethingElseWithShift = true;
+    }
+    else {
+      pressedSomethingElseWithShift = false;
+    }
   }
 
   const InjectedButton_t* buttonMap = injector->buttons;
 
   int num = shiftButton < 0 ? numberOfUnshiftedButtons : numberOfButtons;
 
+  if (isModeJoystick()) {
+    curJoystick->buttons(0);
+  }
+  else if (isModeX360()) {
+    curX360->buttons(0);
+  }
+  else {
+    Switch.buttons(0);
+  }
+
+  int8_t directionSwitchUp = -1;
+  
   for (int i = 0; i < num; i++) {
     if (buttonMap[i].mode == KEY) {
       if (curButtons[i] != prevButtons[i]) {
@@ -370,18 +407,34 @@ void inject(HIDJoystick* joy, USBXBox360Controller* xbox, const Injector_t* inje
           Keyboard.release(buttonMap[i].value.key);
       }
     }
-    else if (buttonMap[i].mode == JOY) {
-      if (isModeJoystick()) {
-        curJoystick->button(buttonMap[i].value.button, curButtons[i]);
-        didJoystick = true;
-      }
-      else if (isModeX360()) {
-        curX360->button(buttonMap[i].value.button, curButtons[i]);
-        didX360 = true;
-      }
-      else {
-        Switch.button(buttonMap[i].value.button, curButtons[i]);
-        didSwitch = true;
+    else if (buttonMap[i].mode == JOY || buttonMap[i].mode == JOY_SWITCHABLE) {
+      if (curButtons[i]) {
+        uint8_t b;
+        if (buttonMap[i].mode == JOY) {
+          b = buttonMap[i].value.button;
+        }
+        else {
+#ifdef directionSwitch
+          if (directionSwitchUp < 0)
+            directionSwitchUp = digitalRead(directionSwitch) == DIRECTION_SWITCH_FORWARD;
+            
+          b = directionSwitchUp ? buttonMap[i].value.joySwitchable.upButton : buttonMap[i].value.joySwitchable.downButton;
+#else
+          b = buttonMap[i].value.joySwitchable.upButton;
+#endif    
+        }
+        if (isModeJoystick()) {
+          if (curButtons[i]) 
+            curJoystick->button(b, 1);
+        }
+        else if (isModeX360()) {
+          if (curButtons[i]) 
+            curX360->button(b, 1);
+        }
+        else {
+          if (curButtons[i]) 
+            Switch.button(b, 1);
+        }
       }
     }
     else if (buttonMap[i].mode == MOUSE_RELATIVE) {
@@ -400,14 +453,14 @@ void inject(HIDJoystick* joy, USBXBox360Controller* xbox, const Injector_t* inje
   if (injector->exerciseMachine != NULL)
     injector->exerciseMachine(curDataP, exerciseMachineP, injector->exerciseMachineMultiplier);
 
-  if (didJoystick)
-    curJoystick->send();
-
-  if (didX360)
-    curX360->send();
-
-  if (didSwitch)
-    Switch.send();
+  if (force || memcmp(curReport, prevReport, reportSize)) {
+    if (isModeJoystick()) 
+      curJoystick->send();
+    else if (isModeX360())
+      curX360->send();
+    else 
+      Switch.send();
+  }
 }
 
 

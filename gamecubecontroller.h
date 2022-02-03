@@ -118,7 +118,9 @@ const uint32_t upButton = PA5;
 const uint32_t downButton = PA4;
 #endif
 const uint32_t rotationDetector = PA7;
-const uint32_t directionSwitch = PA8; // TODO: change to PA9 with screen
+#ifdef ENABLE_EXERCISE_MACHINE
+#define directionSwitch PA8
+#endif
 
 gpio_dev* const ledPort = GPIOB;
 const uint8_t ledPin = 12;
@@ -163,6 +165,7 @@ const int numberOfButtons = 2*numberOfUnshiftedButtons;
 
 #define UNDEFINED 0
 #define JOY 'j'
+#define JOY_SWITCHABLE 'J'
 #define KEY 'k'
 #define FUN 'f'
 #define MOUSE_RELATIVE 'm'
@@ -177,6 +180,10 @@ typedef struct {
   union {
     uint8_t key;
     uint8_t button;
+    struct {
+      uint8_t upButton;
+      uint8_t downButton;
+    } joySwitchable;
     uint8_t buttons;
     struct {
       int16_t x;
@@ -255,13 +262,13 @@ const InjectedButton_t defaultSwitchButtons[numberOfButtons] = {
     { JOY, {.button = HIDSwitchController::BUTTON_B} },           // B
     { JOY, {.button = HIDSwitchController::BUTTON_X} },           // X
     { JOY, {.button = HIDSwitchController::BUTTON_Y} },           // Y
-    { JOY, {.button = HIDSwitchController::BUTTON_PLUS} },        // Start 
+    { SHIFT },        // Start 
     { 0,   {.key = 0 } },             // DLeft
     { 0,   {.key = 0 } },             // DRight
     { 0,   {.key = 0 } },             // DDown
     { 0,   {.key = 0 } },             // DUp
-    { SHIFT },          // Z
-    { 0, {.key = 0 } }, // right shoulder button
+    { JOY, {.button = HIDSwitchController::BUTTON_R } },          // Z
+    { JOY_SWITCHABLE, {.joySwitchable = {.upButton = HIDSwitchController::BUTTON_ZR, .downButton = HIDSwitchController::BUTTON_A } } }, // right shoulder button
     { 0, {.key = 0 } }, // left shoulder button
     { JOY, {.button = HIDSwitchController::BUTTON_ZR } },           // right shoulder button partial
     { JOY, {.button = HIDSwitchController::BUTTON_ZL } },           // left shoulder button partial
@@ -274,12 +281,12 @@ const InjectedButton_t defaultSwitchButtons[numberOfButtons] = {
     { JOY, {.button = HIDSwitchController::BUTTON_HOME } },           // B
     { JOY, {.button = HIDSwitchController::BUTTON_RIGHT_CLICK } },           // X
     { JOY, {.button = HIDSwitchController::BUTTON_LEFT_CLICK } },           // Y
-    { JOY, {.button = HIDSwitchController::BUTTON_MINUS } },           // Start
+    { JOY, {.button = HIDSwitchController::BUTTON_PLUS } },           // Start
     { 0,   {.key = 0 } },             // DLeft
     { 0,   {.key = 0 } },             // DRight
     { 0,   {.key = 0 } },             // DDown
     { 0,   {.key = 0 } },             // DUp
-    { 0 },          // Z
+    { JOY, {.button = HIDSwitchController::BUTTON_MINUS } },          // Z
     { 0, {.key = 0 } }, // right shoulder button
     { 0, {.key = 0 } }, // left shoulder button
     { JOY, {.button = HIDSwitchController::BUTTON_R } },           // right shoulder button partial
