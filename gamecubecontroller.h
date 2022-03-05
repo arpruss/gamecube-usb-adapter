@@ -35,6 +35,8 @@ USBCompositeSerial CompositeSerial;
 
 #define FEATURE_DATA_SIZE 63
 
+#define DEADZONE_10BIT 4
+//#define ENABLE_AUTO_CALIBRATE
 #define ENABLE_SWITCH
 #define ENABLE_GAMECUBE
 #define ENABLE_NUNCHUCK
@@ -95,6 +97,9 @@ void saveInjectionMode(uint8_t mode);
 
 uint8_t validDevices[2] = {CONTROLLER_NONE,CONTROLLER_NONE};
 uint8_t validUSB = 0;
+#ifdef ENABLE_AUTO_CALIBRATE
+bool needToCalibrate = true;
+#endif
 volatile bool exitX360Mode = false;
 uint8_t exerciseMachineRotationDetector = 0;
 extern uint8_t leftMotor;

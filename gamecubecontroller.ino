@@ -237,6 +237,23 @@ void updateLED(void) {
   //gpio_write_bit(ledPort, ledPin, ! (((validDevice != CONTROLLER_NONE) ^ exerciseMachineRotationDetector) && validUSB));
 }
 
+static uint16_t calibrate(uint16_t value, int16_t delta) {
+  value += delta;
+  if ((int16_t)value < 0)
+    return 0;
+  else if (value >= 1024) 
+    return 1023;
+  else
+    return value; 
+}
+
+static uint16_t deadzone(uint16_t x) {
+  if (x >= 512-DEADZONE_10BIT && x <= 512+DEADZONE_10BIT)
+    return 512;
+  else
+    return x;
+}
+
 static uint8_t receiveReport(GameControllerData_t* data, uint8_t deviceNumber) {
   uint8_t success;
   uint8_t reservedDevice = deviceNumber > 0 ? validDevices[0] : CONTROLLER_NONE;
@@ -265,8 +282,33 @@ static uint8_t receiveReport(GameControllerData_t* data, uint8_t deviceNumber) {
       
     success = gc.readWithRumble(data, rumble);
     if (success) {
+#if DEADZONE_10BIT > 0
+      data->joystickX = deadzone(data->joystickX);
+      data->joystickY = deadzone(data->joystickY);
+      data->cX = deadzone(data->cX);
+      data->cY = deadzone(data->cY);
+#endif      
       DEBUG("Success");
       validDevices[deviceNumber] = CONTROLLER_GAMECUBE;
+#ifdef ENABLE_AUTO_CALIBRATE            
+      static int16_t calStick1X = 0;
+      static int16_t calStick1Y = 0;
+      static int16_t calStick2X = 0;
+      static int16_t calStick2Y = 0;
+      if (needToCalibrate) {
+        calStick1X = data->joystickX-512;
+        calStick1Y = data->joystickY-512;
+        calStick2X = data->cX-512;
+        calStick2Y = data->cY-512;
+        needToCalibrate = false;
+      }
+      else {
+        data->joystickX = calibrate(data->joystickX, calStick1X);
+        data->joystickY = calibrate(data->joystickY, calStick1Y);
+        data->cX = calibrate(data->cX, calStick2X);
+        data->cY = calibrate(data->cY, calStick2Y);
+      }
+#endif      
       return 1;
     } 
     validDevice = CONTROLLER_NONE;
@@ -279,6 +321,8 @@ static uint8_t receiveReport(GameControllerData_t* data, uint8_t deviceNumber) {
     CompositeSerial.println(success);
 #endif            
     if (success) {
+      data->joystickX = deadzone(data->joystickX);
+      data->joystickY = deadzone(data->joystickY);
       validDevices[deviceNumber] = CONTROLLER_NUNCHUCK;
       return 1;
     }
