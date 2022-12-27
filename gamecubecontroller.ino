@@ -24,8 +24,7 @@
 // Put a 10 uF and 0.1 uF capacitor between 3.3V and GND right on the black pill board.
 // optional: connect GameCube 1--5V (rumble, make sure there is enough current; you can also try 3.3V if you want)
 
-// Put LEDs + resistors (100-220 ohm) between PA0,PA1,PA2,PA3 and 3.3V
-// Put momentary pushbuttons between PA4 (increment),PA5 (decrement) and 3.3V
+// Put LEDs + resistors (100-220 ohm) between PA0,PA1,PA2,PA3 and 3.3V 
 
 // Connections for exerciseMachine/bike:
 // GND--GND
@@ -209,6 +208,7 @@ void setup() {
     injectionMode = 0;
   else
     injectionMode = i; 
+  //injectionMode = 3; //wasd:DEBUG:TEST
 
   if (injectionMode >= numInjectionModes)
     injectionMode = 0;
@@ -279,7 +279,8 @@ static uint8_t receiveReport(GameControllerData_t* data, uint8_t deviceNumber) {
         rumble = (delta % 100) <= dutyCycle;
       }
     }
-      
+
+    gc.setDPadToJoystick(injectors[injectionMode].dpadToJoystick);
     success = gc.readWithRumble(data, rumble);
     if (success) {
 #if DEADZONE_10BIT > 0

@@ -209,6 +209,7 @@ typedef struct {
   uint8 directions;
   bool show;
   bool rumble;
+  bool dpadToJoystick;
 } Injector_t;
 
 
