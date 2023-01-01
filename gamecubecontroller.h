@@ -241,6 +241,27 @@ const InjectedButton_t defaultJoystickButtons[numberOfButtons] = {
     { 0,   {.key = 0 } },           // virtual up
 };
 
+const InjectedButton_t outfox[numberOfButtons] = {
+    { JOY, {.button = 1} },           // A
+    { JOY, {.button = 2} },           // B
+    { JOY, {.button = 3} },           // X
+    { JOY, {.button = 4} },           // Y
+    { JOY, {.button = 5} },           // Start
+    { JOY,   {.button = 6 } },             // DLeft
+    { JOY,   {.button = 7 } },             // DRight
+    { JOY,   {.button = 8 } },             // DDown
+    { JOY,   {.button = 9 } },             // DUp
+    { JOY, {.button = 10 } },          // Z
+    { JOY, {.button = 11} },            // right shoulder button
+    { JOY, {.button = 12} },           // left shoulder button
+    { JOY,   {.button = 13 } },           // right shoulder button partial
+    { JOY,   {.button = 14 } },           // left shoulder button partial
+    { 0,   {.key = 0 } },           // virtual left
+    { 0,   {.key = 0 } },           // virtual right
+    { 0,   {.key = 0 } },           // virtual down
+    { 0,   {.key = 0 } },           // virtual up
+};
+
 // unsupported: XBox back, XBox left bumper, XBox button, stick buttons
 const InjectedButton_t defaultXBoxButtons[numberOfButtons] = {
     { JOY, {.button = XBOX_A} },           // A
@@ -343,6 +364,27 @@ const InjectedButton_t dpadWASDButtons[numberOfButtons] = {
     { KEY,   {.key = 'd' } },           // virtual right
     { KEY,   {.key = 's' } },           // virtual down
     { KEY,   {.key = 'w' } },           // virtual up
+};
+
+const InjectedButton_t powerPadLeft[numberOfButtons] = {
+    { KEY, {.key = 'q'} },          // A
+    { KEY, {.key = 'z'} },   // B
+    { 0,   {.key = 0 } },           // X
+    { 0,   {.key = 0 } },           // Y
+    { 0,   {.key = KEY_RETURN } },           // Start
+    { KEY, {.key = 'x' } },         // DLeft
+    { KEY, {.key = 'w' } },         // DRight
+    { KEY, {.key = 'd' } },         // DDown
+    { KEY, {.key = 'a' } },         // DUp
+    { KEY, {.key = KEY_BACKSPACE } },           // Z
+    { 0,   {.key = 0 } },           // right shoulder button
+    { 0,   {.key = 0 } },           // left shoulder button
+    { 0,   {.key = 0 } },           // right shoulder button partial
+    { 0,   {.key = 0 } },           // left shoulder button partial
+    { 0,   {.key = 0 } },           // virtual left
+    { 0,   {.key = 0 } },           // virtual right
+    { 0,   {.key = 0 } },           // virtual down
+    { 0,   {.key = 0 } },           // virtual up
 };
 
 const InjectedButton_t dpadWASZButtons[numberOfButtons] = {
@@ -519,7 +561,8 @@ const USBMode_t modeSwitch = {
 const Injector_t injectors[] {
   { &modeUSBHID, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 64, "defaultUnified", "joystick, unified shoulder, speed 100%", 8, true },
   { &modeUSBHID, defaultJoystickButtons, joystickDualShoulder, exerciseMachineSliders, 40, "defaultDual", "joystick, dual shoulders, speed 63%", 8, true },
-  { &modeUSBHID, jetsetJoystickButtons, joystickNoShoulder, exerciseMachineSliders, 64, "jetset", "Jet Set Radio", 8, true },
+  { &modeUSBHID, jetsetJoystickButtons, joystickNoShoulder, exerciseMachineSliders, 64, "jetset", "Jet Set Radio", 8, false },
+  { &modeUSBHID, powerPadLeft, joystickNoShoulder, exerciseMachineSliders, 64, "powerpad left", "PowerPad left", 4, true },
   { &modeUSBHID, dpadWASDButtons, NULL, exerciseMachineSliders, 64, "wasd", "WASD, 4-way", 4, true },
   { &modeUSBHID, dpadWASDButtons, NULL, exerciseMachineSliders, 64, "wasd", "WASD, 8-way", 8, false },
   { &modeUSBHID, dpadArrowWithCTRL, NULL, exerciseMachineSliders, 64, "dpadArrowCtrl", "Arrow keys with A=CTRL, 4-way", 4, true },
@@ -527,7 +570,7 @@ const Injector_t injectors[] {
   { &modeUSBHID, dpadArrowWithSpace, NULL, exerciseMachineSliders, 64, "dpadArrowSpace", "Arrow keys with A=SPACE, 4-way", 4, true },  
   { &modeUSBHID, dpadArrowWithSpace, NULL, exerciseMachineSliders, 64, "dpadArrowSpace", "Arrow keys with A=SPACE, 8-way", 8, false },  
   { &modeUSBHID, mame, NULL, exerciseMachineSliders, 64, "mame", "MAME", 4, false },  
-  { &modeUSBHID, dpadQBert, NULL, exerciseMachineSliders, 64, "dpadQBert", "QBert with dpad", 4, true },  
+  { &modeUSBHID, outfox, joystickUnifiedShoulder, exerciseMachineSliders, 64, "outfox", "OutFox", 4, true },  
   //{ &modeUSBHID, dpadMC, NULL, exerciseMachineSliders, 64, "dpadMC", "Minecraft with dpad", 4, true },  
 #ifdef ENABLE_SWITCH
   { &modeSwitch, defaultSwitchButtons, joystickNoShoulder, NULL, 64, "switch", "Switch Controller", 8, true, false },
