@@ -92,7 +92,7 @@ static inline int16_t range10u16s(uint16_t x) {
   return (((int32_t)(uint32_t)x - 512) * 32767 + 255) / 512;
 }
 
-static void joystickBasic(const GameControllerData_t* data) {
+void joystickBasic(const GameControllerData_t* data) {
   if (isModeJoystick()) {
     curJoystick->X(data->joystickX);
     curJoystick->Y(data->joystickY);

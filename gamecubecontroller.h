@@ -216,6 +216,7 @@ typedef struct {
 void joystickNoShoulder(const GameControllerData_t* data);
 void joystickDualShoulder(const GameControllerData_t* data);
 void joystickUnifiedShoulder(const GameControllerData_t* data);
+void joystickBasic(const GameControllerData_t* data);
 void exerciseMachineSliders(const GameControllerData_t* data, const ExerciseMachineData_t* exerciseMachineP, int32_t multiplier);
 void directionSwitchSlider(const GameControllerData_t* data, const ExerciseMachineData_t* exerciseMachineP, int32_t multiplier);
 
@@ -371,12 +372,12 @@ const InjectedButton_t powerPadLeft[numberOfButtons] = {
     { KEY, {.key = 'z'} },   // B
     { 0,   {.key = 0 } },           // X
     { 0,   {.key = 0 } },           // Y
-    { 0,   {.key = KEY_RETURN } },           // Start
+    { KEY,   {.key = '=' } },           // Start
     { KEY, {.key = 'x' } },         // DLeft
     { KEY, {.key = 'w' } },         // DRight
     { KEY, {.key = 'd' } },         // DDown
     { KEY, {.key = 'a' } },         // DUp
-    { KEY, {.key = KEY_BACKSPACE } },           // Z
+    { KEY, {.key = '-'} },           // Z
     { 0,   {.key = 0 } },           // right shoulder button
     { 0,   {.key = 0 } },           // left shoulder button
     { 0,   {.key = 0 } },           // right shoulder button partial
@@ -562,7 +563,7 @@ const Injector_t injectors[] {
   { &modeUSBHID, defaultJoystickButtons, joystickUnifiedShoulder, exerciseMachineSliders, 64, "defaultUnified", "joystick, unified shoulder, speed 100%", 8, true },
   { &modeUSBHID, defaultJoystickButtons, joystickDualShoulder, exerciseMachineSliders, 40, "defaultDual", "joystick, dual shoulders, speed 63%", 8, true },
   { &modeUSBHID, jetsetJoystickButtons, joystickNoShoulder, exerciseMachineSliders, 64, "jetset", "Jet Set Radio", 8, false },
-  { &modeUSBHID, powerPadLeft, joystickNoShoulder, exerciseMachineSliders, 64, "powerpad left", "PowerPad left", 4, true },
+  { &modeUSBHID, powerPadLeft, joystickBasic, exerciseMachineSliders, 64, "powerpad left", "PowerPad left", 4, true },
   { &modeUSBHID, dpadWASDButtons, NULL, exerciseMachineSliders, 64, "wasd", "WASD, 4-way", 4, true },
   { &modeUSBHID, dpadWASDButtons, NULL, exerciseMachineSliders, 64, "wasd", "WASD, 8-way", 8, false },
   { &modeUSBHID, dpadArrowWithCTRL, NULL, exerciseMachineSliders, 64, "dpadArrowCtrl", "Arrow keys with A=CTRL, 4-way", 4, true },
