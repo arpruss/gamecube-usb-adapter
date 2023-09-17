@@ -2,7 +2,7 @@
 
 #ifndef DWT_BASE
 
-#define SystemCoreClock 72000000ul
+#define SystemCoreClock 72000000ul 
 
 #include "Arduino.h"
 
@@ -53,4 +53,17 @@ typedef struct
 
 #define DWT                 ((volatile DWT_Type * const )      DWT_BASE      )   
 #define CoreDebug           ((volatile CoreDebug_Type * const) CoreDebug_BASE)   
+
+#define DWTInitTimer() ((CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk), (DWT->CTRL |= 1))
+
+static __attribute__((always_inline)) inline void DWTDelayCycles(uint32_t c) {
+    DWT->CYCCNT = 0; 
+    while (DWT->CYCCNT < _cyclesToDelay);
+}
+
+#define MicrosecondsToCycles(n) ((n) * SystemCoreClock / 1000000ul)
+#define DWTDelayMicroseconds(n) DWTDelayCycles(MicrosecondsToCycles(n))
+#define DWTDelayNanoseconds(n) DWTDelayCycles(NanosecondsToCycles(n))
+#define DWTDelayNanoseconds(n) DWTDelayCycles((unsigned long long)(n) * SystemCoreClock / 1000000000ull)
+
 #endif

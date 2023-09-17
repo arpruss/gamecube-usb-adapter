@@ -110,6 +110,7 @@ void beginUSBHID() {
   USBComposite.setProductString("Multiadapter Single Joystick");
   USBComposite.setVendorId(VENDOR_ID);
   USBComposite.setProductId(PRODUCT_ID_SINGLE);  
+  HID.setTXInterval(4);
 #ifdef SERIAL_DEBUG
   HID.begin(CompositeSerial,reportDescription,sizeof(reportDescription));
 #else
